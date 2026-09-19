@@ -1,0 +1,5 @@
+# lokální nastavení editoru a nástrojů (nepatří na GitHub)
+.claude/
+.vscode/
+Thumbs.db
+.DS_Store

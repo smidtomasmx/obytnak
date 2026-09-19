@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Blog – rady a tipy pro cestování obytňákem</title>
+  <meta name="description" content="Rady, tipy a inspirace pro cestování obytným autem – trasy, první pronájem, technika, kempy a další.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="src/logo.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="blog">
+  <header class="site-header">
+    <div class="wrap">
+      <a class="logo" href="index.html" aria-label="Obytňák Vysočina – úvodní stránka">
+        <img src="src/logo.png" alt="Obytňák Vysočina" width="56" height="56">
+      </a>
+      <button class="burger" aria-label="Menu" aria-expanded="false" aria-controls="nav"><span></span></button>
+      <nav class="nav" id="nav">
+        <a href="obytne-auto.html">Obytné auto</a>
+        <a href="fotogalerie.html">Fotogalerie</a>
+        <a href="cenik.html">Ceník</a>
+        <a href="blog.html" class="active" aria-current="page">Blog</a>
+        <a href="rezervace.html" class="cta">Rezervace</a>
+        <a href="kontakt.html">Kontakt</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero small" id="blogHero" style="background-image:url('src/Grossglockner-Hochalpenstrasse-35c513e7-828b-4444-861d-616a0269dcc5.webp')">
+    <div class="wrap">
+      <span class="eyebrow" style="color:#7bd88f">Blog</span>
+      <h1>Rady, tipy a inspirace</h1>
+      <p class="lead">Vše, co byste rádi věděli před cestou obytným autem.</p>
+    </div>
+  </section>
+
+  <!-- PŘEHLED ČLÁNKŮ -->
+  <section class="section" id="blogList">
+    <!--
+      BLOG: každý článek je v tomto souboru dvakrát:
+      1) karta v přehledu níže (název, krátký popis, fotka),
+      2) celý článek dole v sekci "ČLÁNEK" (odkaz #adresa-článku).
+      Nový článek přidáte zkopírováním jedné karty a jednoho článku a změnou adresy (id).
+    -->
+    <div class="wrap">
+      <div class="filters" role="group" aria-label="Kategorie článků" data-target="#postGrid">
+        <button class="on" data-cat="all">Vše</button>
+        <button data-cat="Pro začátečníky">Pro začátečníky</button>
+        <button data-cat="Praktické">Praktické</button>
+        <button data-cat="Jak vybrat vůz">Jak vybrat vůz</button>
+        <button data-cat="Technika">Technika</button>
+        <button data-cat="Cestování po Česku">Cestování po Česku</button>
+        <button data-cat="Cestování v zahraničí">Cestování v zahraničí</button>
+        <button data-cat="Pro rodiny">Pro rodiny</button>
+      </div>
+      <div class="grid g3" id="postGrid">
+        <article class="post" data-cat="Pro začátečníky">
+          <a href="#prvni-pronajem" tabindex="-1" aria-hidden="true"><img src="src/IMG_9610.jpg" alt="" loading="lazy" style="object-position:center 40%"></a>
+          <div class="body">
+            <span class="meta">Pro začátečníky</span>
+            <h3><a href="#prvni-pronajem">První pronájem obytňáku: co vás čeká</a></h3>
+            <p class="muted">Jak si vybrat vůz, co si projít při převzetí a čeho se nemusíte bát. Průvodce pro úplné nováčky.</p>
+            <a class="more" href="#prvni-pronajem">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Praktické">
+          <a href="#co-sbalit" tabindex="-1" aria-hidden="true"><img src="src/0f45ec1f-7c8d-42bc-b82d-c76d93101043.webp" alt="" loading="lazy" style="object-position:center"></a>
+          <div class="body">
+            <span class="meta">Praktické</span>
+            <h3><a href="#co-sbalit">Co si sbalit na cesty obytným autem</a></h3>
+            <p class="muted">Kontrolní seznam, který vám ušetří nervy. Co vzít, co nechat doma a jak to chytře uložit.</p>
+            <a class="more" href="#co-sbalit">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Pro začátečníky">
+          <a href="#desatero-pohoda" tabindex="-1" aria-hidden="true"><img src="src/IMG_9574_jpg-2.jpg" alt="" loading="lazy" style="object-position:center 62%"></a>
+          <div class="body">
+            <span class="meta">Pro začátečníky</span>
+            <h3><a href="#desatero-pohoda">Deset rad pro pohodovou dovolenou v obytňáku</a></h3>
+            <p class="muted">Zkušenosti, které se hodí každému. Desetkrát jinak o tom, jak si cestu opravdu užít.</p>
+            <a class="more" href="#desatero-pohoda">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Jak vybrat vůz">
+          <a href="#typy-obytnych-vozu" tabindex="-1" aria-hidden="true"><img src="src/IMG_9616.jpg" alt="" loading="lazy" style="object-position:center 35%"></a>
+          <div class="body">
+            <span class="meta">Jak vybrat vůz</span>
+            <h3><a href="#typy-obytnych-vozu">Alkovna, polointegrál nebo integrál? Rozdíly mezi typy vozů</a></h3>
+            <p class="muted">Který typ obytného vozu se hodí pro koho? Stručný přehled výhod a nevýhod jednotlivých karoserií.</p>
+            <a class="more" href="#typy-obytnych-vozu">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Jak vybrat vůz">
+          <a href="#obytnak-nebo-prives" tabindex="-1" aria-hidden="true"><img src="src/IMG_9574_jpg-2.jpg" alt="" loading="lazy" style="object-position:center 70%"></a>
+          <div class="body">
+            <span class="meta">Jak vybrat vůz</span>
+            <h3><a href="#obytnak-nebo-prives">Obytný vůz, nebo karavan za autem?</a></h3>
+            <p class="muted">Dvě cesty k podobnému cíli. Porovnáváme pohodlí, cenu, řízení i praktičnost obou variant.</p>
+            <a class="more" href="#obytnak-nebo-prives">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Technika">
+          <a href="#jak-se-ridi-obytnak" tabindex="-1" aria-hidden="true"><img src="src/IMG_9616.jpg" alt="" loading="lazy" style="object-position:center 78%"></a>
+          <div class="body">
+            <span class="meta">Technika</span>
+            <h3><a href="#jak-se-ridi-obytnak">Jak se řídí obytňák: 8 tipů pro klidnou jízdu</a></h3>
+            <p class="muted">Rozměry, couvání, brzdná dráha i boční vítr. Praktické rady, které vám dodají jistotu za volantem.</p>
+            <a class="more" href="#jak-se-ridi-obytnak">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Praktické">
+          <a href="#kde-prespat" tabindex="-1" aria-hidden="true"><img src="src/0f45ec1f-7c8d-42bc-b82d-c76d93101043.webp" alt="" loading="lazy" style="object-position:left center"></a>
+          <div class="body">
+            <span class="meta">Praktické</span>
+            <h3><a href="#kde-prespat">Kde přespat s obytňákem: kempy, areály i parkoviště</a></h3>
+            <p class="muted">Kemp, areál pro obytné vozy, nebo soukromý pozemek? Přehled možností a pravidel, která je dobré znát.</p>
+            <a class="more" href="#kde-prespat">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Cestování po Česku">
+          <a href="#vysocina-obytnakem" tabindex="-1" aria-hidden="true"><img src="src/0f45ec1f-7c8d-42bc-b82d-c76d93101043.webp" alt="" loading="lazy" style="object-position:center 40%"></a>
+          <div class="body">
+            <span class="meta">Cestování po Česku</span>
+            <h3><a href="#vysocina-obytnakem">Vysočina obytným autem: klid, lesy a Sázava</a></h3>
+            <p class="muted">Máte vůz převzatý ve Světlé nad Sázavou? Tady je pár nápadů na výlety, které začínají hned za dveřmi.</p>
+            <a class="more" href="#vysocina-obytnakem">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Cestování v zahraničí">
+          <a href="#grossglockner" tabindex="-1" aria-hidden="true"><img src="src/Grossglockner-Hochalpenstrasse-35c513e7-828b-4444-861d-616a0269dcc5.webp" alt="" loading="lazy" style="object-position:center 60%"></a>
+          <div class="body">
+            <span class="meta">Cestování v zahraničí</span>
+            <h3><a href="#grossglockner">Grossglockner: alpská silnice pro obytňák</a></h3>
+            <p class="muted">Serpentiny, ledovec a výhledy na nejvyšší horu Rakouska. Na co se připravit před jízdou.</p>
+            <a class="more" href="#grossglockner">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Cestování po Česku">
+          <a href="#jizni-morava-vino" tabindex="-1" aria-hidden="true"><img src="src/IMG_9574_jpg-2.jpg" alt="" loading="lazy" style="object-position:center 60%"></a>
+          <div class="body">
+            <span class="meta">Cestování po Česku</span>
+            <h3><a href="#jizni-morava-vino">Jižní Morava za vínem: sklepy, vinice a klid</a></h3>
+            <p class="muted">Jak si užít vinařskou cestu bez starostí o odvoz. Vinné sklepy, cyklostezky a pár praktických rad.</p>
+            <a class="more" href="#jizni-morava-vino">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Pro rodiny">
+          <a href="#s-detmi" tabindex="-1" aria-hidden="true"><img src="src/IMG_9616.jpg" alt="" loading="lazy" style="object-position:center 40%"></a>
+          <div class="body">
+            <span class="meta">Pro rodiny</span>
+            <h3><a href="#s-detmi">S dětmi v obytném voze: rodinná dovolená bez stresu</a></h3>
+            <p class="muted">Alkovna jako dobrodružství, bezpečná jízda a nápady, jak zabavit děti na cestě i v kempu.</p>
+            <a class="more" href="#s-detmi">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Technika">
+          <a href="#zima-v-obytnaku" tabindex="-1" aria-hidden="true"><img src="src/IMG_9603.jpg" alt="" loading="lazy" style="object-position:center 55%"></a>
+          <div class="body">
+            <span class="meta">Technika</span>
+            <h3><a href="#zima-v-obytnaku">Obytným autem i v zimě: teplo, lyže a klid</a></h3>
+            <p class="muted">Kdo řekl, že se obytňák hodí jen na léto? Jak se připravit na chladné dny a užít si zimní cesty.</p>
+            <a class="more" href="#zima-v-obytnaku">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Technika">
+          <a href="#leto-a-chlad" tabindex="-1" aria-hidden="true"><img src="src/0f45ec1f-7c8d-42bc-b82d-c76d93101043.webp" alt="" loading="lazy" style="object-position:right center"></a>
+          <div class="body">
+            <span class="meta">Technika</span>
+            <h3><a href="#leto-a-chlad">Jak udržet vůz v létě chladný</a></h3>
+            <p class="muted">Stín, větrání a chytré návyky. Pár rad, díky kterým se v horku nevyvaříte ani vy, ani potraviny v lednici.</p>
+            <a class="more" href="#leto-a-chlad">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Technika">
+          <a href="#elektrina-a-voda" tabindex="-1" aria-hidden="true"><img src="src/fo_alkoven_a699eb-5-9.jpg" alt="" loading="lazy" style="object-position:center"></a>
+          <div class="body">
+            <span class="meta">Technika</span>
+            <h3><a href="#elektrina-a-voda">Elektřina a voda na cestách: jak s nimi hospodařit</a></h3>
+            <p class="muted">Přídavná baterie, solární panely, přípojka na 230 V a čerstvá voda. Základy, které by měl znát každý.</p>
+            <a class="more" href="#elektrina-a-voda">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Praktické">
+          <a href="#varime-v-obytnaku" tabindex="-1" aria-hidden="true"><img src="src/fo_alkoven_a699eb-5-9.jpg" alt="" loading="lazy" style="object-position:center 40%"></a>
+          <div class="body">
+            <span class="meta">Praktické</span>
+            <h3><a href="#varime-v-obytnaku">Vaříme v obytňáku: jednoduchá jídla z jedné pánve</a></h3>
+            <p class="muted">Malá kuchyň nemusí znamenat malá chuť. Nápady na rychlá jídla, nákupy a úsporu vody.</p>
+            <a class="more" href="#varime-v-obytnaku">Číst článek →</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ČTENÍ JEDNOHO ČLÁNKU -->
+  <div id="blogArticles">
+  <!-- ČLÁNEK 1: První pronájem obytňáku: co vás čeká -->
+  <section class="section article-page" id="prvni-pronajem">
+    <div class="wrap article-wrap">
+      <a class="back" href="blog.html">← Zpět na všechny články</a>
+      <span class="eyebrow">Pro začátečníky</span>
+      <h1>První pronájem obytňáku: co vás čeká</h1>
+      <p class="lead-text">Jak si vybrat vůz, co si projít při převzetí a čeho se nemusíte bát. Průvodce pro úplné nováčky.</p>
+      <img class="cover" src="src/IMG_9610.jpg" alt="" style="object-position:center 40%">
+      <div class="article">
+    <p>Půjčit si obytný vůz poprvé je trochu jako první lyžařský výlet – z dálky to vypadá složitě, ale po pár hodinách se z vás stane profík. Většina začátečníků se dopředu bojí věcí, které se ve skutečnosti ukážou jako maličkosti.</p>
+    <h2>Řidičský průkaz a řízení</h2>
+    <p>Většinu pronajímaných obytných vozů zvládne řidič se skupinou B. Náš Forster A 699 HB mezi ně patří. Řídí se podobně jako větší dodávka: je vyšší, širší a delší než osobní auto, ale s parkovací kamerou a senzory se vám bude couvat překvapivě dobře.</p>
+    <h2>Jak vybrat správnou velikost</h2>
+    <p>Počítejte se dvěma věcmi: kolik vás pojede a kolik místa potřebujete na spaní. Větší vůz znamená víc pohodlí, ale i větší nároky na parkování a plánování trasy. Rodina se dvěma dětmi vystačí s alkovnou, pár vyrazí i na kratší víkend s menším vozem.</p>
+    <h2>Předání vozu – na co se ptát</h2>
+    <ul>
+      <li>Jak se doplňuje a vypouští voda a kam patří odpadní vody.</li>
+      <li>Jak funguje topení, lednice a elektřina (přídavná baterie, kabel na 230 V).</li>
+      <li>Jak se rozkládá markýza a jak se skládají postele.</li>
+      <li>Kolik vůz měří na výšku a šířku – a kde si dát pozor.</li>
+      <li>Komu a kdy zavolat, když si nebudete jistí.</li>
+    </ul>
+    <div class="tip"><b>Tip:</b> Nechte si vše při převzetí názorně ukázat a natočte si to na telefon. Na cestě se vám záznam bude hodit víc než papírový návod.</div>
+    <h2>Neplánujte příliš</h2>
+    <p>Obytňák si žádá pomalejší tempo. Pro začátek vám bohatě stačí 150–250 kilometrů denně. První noc strávte v kempu poblíž místa předání – když něco zapomenete, jste v pár minutách zpátky.</p>
+      </div>
+      <div class="article-cta">
+        <div><strong>Chcete to zkusit na vlastní kůži?</strong><br><span class="muted">Vyberte termín a rezervujte si náš Forster A 699 HB.</span></div>
+        <a class="btn" href="rezervace.html">Rezervovat vůz</a>
+      </div>
+      <div class="pager">
+        <a href="#varime-v-obytnaku"><small>← Předchozí</small><span>Vaříme v obytňáku: jednoduchá jídla z jedné pánve</span></a>
+        <a href="#co-sbalit" class="r"><small>Další →</small><span>Co si sbalit na cesty obytným autem</span></a>
+      </div>
+    </div>
+    <div class="wrap" style="margin-top:56px">
+      <h2 class="center" style="font-size:1.5rem">Další články</h2>
+      <div class="grid g3" style="margin-top:24px">
+        <article class="post" data-cat="Pro začátečníky">
+          <a href="#desatero-pohoda" tabindex="-1" aria-hidden="true"><img src="src/IMG_9574_jpg-2.jpg" alt="" loading="lazy" style="object-position:center 62%"></a>
+          <div class="body">
+            <span class="meta">Pro začátečníky</span>
+            <h3><a href="#desatero-pohoda">Deset rad pro pohodovou dovolenou v obytňáku</a></h3>
+            <p class="muted">Zkušenosti, které se hodí každému. Desetkrát jinak o tom, jak si cestu opravdu užít.</p>
+            <a class="more" href="#desatero-pohoda">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Praktické">
+          <a href="#co-sbalit" tabindex="-1" aria-hidden="true"><img src="src/0f45ec1f-7c8d-42bc-b82d-c76d93101043.webp" alt="" loading="lazy" style="object-position:center"></a>
+          <div class="body">
+            <span class="meta">Praktické</span>
+            <h3><a href="#co-sbalit">Co si sbalit na cesty obytným autem</a></h3>
+            <p class="muted">Kontrolní seznam, který vám ušetří nervy. Co vzít, co nechat doma a jak to chytře uložit.</p>
+            <a class="more" href="#co-sbalit">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Jak vybrat vůz">
+          <a href="#typy-obytnych-vozu" tabindex="-1" aria-hidden="true"><img src="src/IMG_9616.jpg" alt="" loading="lazy" style="object-position:center 35%"></a>
+          <div class="body">
+            <span class="meta">Jak vybrat vůz</span>
+            <h3><a href="#typy-obytnych-vozu">Alkovna, polointegrál nebo integrál? Rozdíly mezi typy vozů</a></h3>
+            <p class="muted">Který typ obytného vozu se hodí pro koho? Stručný přehled výhod a nevýhod jednotlivých karoserií.</p>
+            <a class="more" href="#typy-obytnych-vozu">Číst článek →</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ČLÁNEK 2: Co si sbalit na cesty obytným autem -->
+  <section class="section article-page" id="co-sbalit">
+    <div class="wrap article-wrap">
+      <a class="back" href="blog.html">← Zpět na všechny články</a>
+      <span class="eyebrow">Praktické</span>
+      <h1>Co si sbalit na cesty obytným autem</h1>
+      <p class="lead-text">Kontrolní seznam, který vám ušetří nervy. Co vzít, co nechat doma a jak to chytře uložit.</p>
+      <img class="cover" src="src/0f45ec1f-7c8d-42bc-b82d-c76d93101043.webp" alt="" style="object-position:center">
+      <div class="article">
+    <p>V obytném voze platí jednoduché pravidlo: kolik věcí vezmete, tolik jich musíte umět uložit. Zároveň se ale nechcete ocitnout v kempu bez toho, co zrovna potřebujete. Tady je seznam, se kterým vyrazí kdokoli.</p>
+    <h2>Doklady a papíry</h2>
+    <ul>
+      <li>Občanské průkazy, řidičský průkaz, případně pas</li>
+      <li>Kartička zdravotního pojištění (do zahraničí evropský průkaz)</li>
+      <li>Rezervace kempů a smlouva o pronájmu</li>
+    </ul>
+    <h2>Oblečení</h2>
+    <p>Balte do vrstev, ne do kufrů. Měkké tašky se dají vecpat do všech skříněk, tvrdé kufry ne. Nezapomeňte na pevnou obuv, pláštěnku a něco teplého na večery – i v létě se po západu slunce ochladí.</p>
+    <h2>Kuchyň a jídlo</h2>
+    <ul>
+      <li>Základ na dva dny: těstoviny, rýže, konzervy, koření, olej, káva</li>
+      <li>Pár kuchyňských utěrek a houbiček, odpadkové pytle</li>
+      <li>Nádobí, příbory a hrnce podle počtu osob</li>
+    </ul>
+    <h2>Hygiena a zdraví</h2>
+    <p>Osušky, hygienické potřeby, opalovací krém, repelent a lékárnička. Do vozu nevozte nic, co je citlivé na teplo, aniž byste to hlídali – v létě se vnitřek přes den zahřeje.</p>
+    <h2>Zábava na večery</h2>
+    <p>Deskové hry, karty, kniha, hudba v telefonu. Večery pod markýzou patří k tomu nejlepšímu, co karavaning nabízí.</p>
+    <div class="tip"><b>Tip:</b> Nechte doma všechno, co jste nepoužili na posledním výletě. Vůz rád jezdí zbytečně nenaložený.</div>
+      </div>
+      <div class="article-cta">
+        <div><strong>Chcete to zkusit na vlastní kůži?</strong><br><span class="muted">Vyberte termín a rezervujte si náš Forster A 699 HB.</span></div>
+        <a class="btn" href="rezervace.html">Rezervovat vůz</a>
+      </div>
+      <div class="pager">
+        <a href="#prvni-pronajem"><small>← Předchozí</small><span>První pronájem obytňáku: co vás čeká</span></a>
+        <a href="#desatero-pohoda" class="r"><small>Další →</small><span>Deset rad pro pohodovou dovolenou v obytňáku</span></a>
+      </div>
+    </div>
+    <div class="wrap" style="margin-top:56px">
+      <h2 class="center" style="font-size:1.5rem">Další články</h2>
+      <div class="grid g3" style="margin-top:24px">
+        <article class="post" data-cat="Praktické">
+          <a href="#kde-prespat" tabindex="-1" aria-hidden="true"><img src="src/0f45ec1f-7c8d-42bc-b82d-c76d93101043.webp" alt="" loading="lazy" style="object-position:left center"></a>
+          <div class="body">
+            <span class="meta">Praktické</span>
+            <h3><a href="#kde-prespat">Kde přespat s obytňákem: kempy, areály i parkoviště</a></h3>
+            <p class="muted">Kemp, areál pro obytné vozy, nebo soukromý pozemek? Přehled možností a pravidel, která je dobré znát.</p>
+            <a class="more" href="#kde-prespat">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Praktické">
+          <a href="#varime-v-obytnaku" tabindex="-1" aria-hidden="true"><img src="src/fo_alkoven_a699eb-5-9.jpg" alt="" loading="lazy" style="object-position:center 40%"></a>
+          <div class="body">
+            <span class="meta">Praktické</span>
+            <h3><a href="#varime-v-obytnaku">Vaříme v obytňáku: jednoduchá jídla z jedné pánve</a></h3>
+            <p class="muted">Malá kuchyň nemusí znamenat malá chuť. Nápady na rychlá jídla, nákupy a úsporu vody.</p>
+            <a class="more" href="#varime-v-obytnaku">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Pro začátečníky">
+          <a href="#prvni-pronajem" tabindex="-1" aria-hidden="true"><img src="src/IMG_9610.jpg" alt="" loading="lazy" style="object-position:center 40%"></a>
+          <div class="body">
+            <span class="meta">Pro začátečníky</span>
+            <h3><a href="#prvni-pronajem">První pronájem obytňáku: co vás čeká</a></h3>
+            <p class="muted">Jak si vybrat vůz, co si projít při převzetí a čeho se nemusíte bát. Průvodce pro úplné nováčky.</p>
+            <a class="more" href="#prvni-pronajem">Číst článek →</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ČLÁNEK 3: Deset rad pro pohodovou dovolenou v obytňáku -->
+  <section class="section article-page" id="desatero-pohoda">
+    <div class="wrap article-wrap">
+      <a class="back" href="blog.html">← Zpět na všechny články</a>
+      <span class="eyebrow">Pro začátečníky</span>
+      <h1>Deset rad pro pohodovou dovolenou v obytňáku</h1>
+      <p class="lead-text">Zkušenosti, které se hodí každému. Desetkrát jinak o tom, jak si cestu opravdu užít.</p>
+      <img class="cover" src="src/IMG_9574_jpg-2.jpg" alt="" style="object-position:center 62%">
+      <div class="article">
+    <ol>
+      <li><b>Rezervujte kempy s předstihem.</b> V létě a o svátcích bývají oblíbená místa brzy plná.</li>
+      <li><b>Nastavte si nízké tempo.</b> Nejlepší dovolená není ta s nejvíce najetými kilometry, ale ta s nejvíce zastávkami.</li>
+      <li><b>Řiďte se výškou vozu.</b> Před každým podjezdem, tunelem nebo lesní cestou vědět, kolik vůz měří. Náš má 3,2 metru.</li>
+      <li><b>Před odjezdem projděte kontrolní seznam:</b> markýza zasunutá, okna zavřená, střešní okna zajištěná, schůdky sklopené, věci ve skříňkách zajištěné.</li>
+      <li><b>Plňte nádrž včas.</b> Nečekejte na poslední kapku, čerpací stanice s obytňákem nemusí být vždy po ruce.</li>
+      <li><b>Šetřete vodou.</b> Krátká sprcha a rozumné mytí nádobí vám vystačí déle, než čekáte.</li>
+      <li><b>Držte pořádek.</b> Malý prostor si žádá, aby se věci vracely na své místo. Po každém jídle uklidit, každý večer rychle projít.</li>
+      <li><b>Mějte plán B.</b> Počasí se mění. Vyberte si k trase pár alternativ, například muzeum, termály nebo kryté aquaparky.</li>
+      <li><b>Sledujte pravidla v kempech.</b> Klid po 22:00, vjezd aut, třídění odpadu. Každé místo má svůj řád.</li>
+      <li><b>Užívejte si.</b> Právě k tomu obytňák slouží. Neřešte, jestli je všechno dokonalé.</li>
+    </ol>
+      </div>
+      <div class="article-cta">
+        <div><strong>Chcete to zkusit na vlastní kůži?</strong><br><span class="muted">Vyberte termín a rezervujte si náš Forster A 699 HB.</span></div>
+        <a class="btn" href="rezervace.html">Rezervovat vůz</a>
+      </div>
+      <div class="pager">
+        <a href="#co-sbalit"><small>← Předchozí</small><span>Co si sbalit na cesty obytným autem</span></a>
+        <a href="#typy-obytnych-vozu" class="r"><small>Další →</small><span>Alkovna, polointegrál nebo integrál? Rozdíly mezi typy vozů</span></a>
+      </div>
+    </div>
+    <div class="wrap" style="margin-top:56px">
+      <h2 class="center" style="font-size:1.5rem">Další články</h2>
+      <div class="grid g3" style="margin-top:24px">
+        <article class="post" data-cat="Pro začátečníky">
+          <a href="#prvni-pronajem" tabindex="-1" aria-hidden="true"><img src="src/IMG_9610.jpg" alt="" loading="lazy" style="object-position:center 40%"></a>
+          <div class="body">
+            <span class="meta">Pro začátečníky</span>
+            <h3><a href="#prvni-pronajem">První pronájem obytňáku: co vás čeká</a></h3>
+            <p class="muted">Jak si vybrat vůz, co si projít při převzetí a čeho se nemusíte bát. Průvodce pro úplné nováčky.</p>
+            <a class="more" href="#prvni-pronajem">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Praktické">
+          <a href="#co-sbalit" tabindex="-1" aria-hidden="true"><img src="src/0f45ec1f-7c8d-42bc-b82d-c76d93101043.webp" alt="" loading="lazy" style="object-position:center"></a>
+          <div class="body">
+            <span class="meta">Praktické</span>
+            <h3><a href="#co-sbalit">Co si sbalit na cesty obytným autem</a></h3>
+            <p class="muted">Kontrolní seznam, který vám ušetří nervy. Co vzít, co nechat doma a jak to chytře uložit.</p>
+            <a class="more" href="#co-sbalit">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Jak vybrat vůz">
+          <a href="#typy-obytnych-vozu" tabindex="-1" aria-hidden="true"><img src="src/IMG_9616.jpg" alt="" loading="lazy" style="object-position:center 35%"></a>
+          <div class="body">
+            <span class="meta">Jak vybrat vůz</span>
+            <h3><a href="#typy-obytnych-vozu">Alkovna, polointegrál nebo integrál? Rozdíly mezi typy vozů</a></h3>
+            <p class="muted">Který typ obytného vozu se hodí pro koho? Stručný přehled výhod a nevýhod jednotlivých karoserií.</p>
+            <a class="more" href="#typy-obytnych-vozu">Číst článek →</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ČLÁNEK 4: Alkovna, polointegrál nebo integrál? Rozdíly mezi typy vozů -->
+  <section class="section article-page" id="typy-obytnych-vozu">
+    <div class="wrap article-wrap">
+      <a class="back" href="blog.html">← Zpět na všechny články</a>
+      <span class="eyebrow">Jak vybrat vůz</span>
+      <h1>Alkovna, polointegrál nebo integrál? Rozdíly mezi typy vozů</h1>
+      <p class="lead-text">Který typ obytného vozu se hodí pro koho? Stručný přehled výhod a nevýhod jednotlivých karoserií.</p>
+      <img class="cover" src="src/IMG_9616.jpg" alt="" style="object-position:center 35%">
+      <div class="article">
+    <p>Když poprvé hledáte obytný vůz, rychle se ztratíte v názvech: alkovna, polointegrál, integrál, van. Za každým z nich se skrývá trochu jiný styl cestování.</p>
+    <h2>Alkovna</h2>
+    <p>Poznáte ji podle „nosu“ nad kabinou řidiče, kde je další velká postel. Právě takový je náš Forster A 699 HB.</p>
+    <ul>
+      <li><b>Výhody:</b> hodně lůžek na malém prostoru, příznivá cena, vhodné pro rodiny.</li>
+      <li><b>Nevýhody:</b> vyšší vůz, větší odpor větru, do alkovny se leze po žebříku.</li>
+    </ul>
+    <h2>Polointegrál</h2>
+    <p>Kabina řidiče je řešena jako součást vozu, ale nad ní není výrazný výstupek. Vůz je aerodynamičtější a nižší, ale zpravidla s menším počtem lůžek.</p>
+    <h2>Integrál</h2>
+    <p>Obytná část přechází plynule do kabiny, takže předními sedadly lze otočit do obytného prostoru. Nabízí nejvíc luxusu a světla, bývá ale nejdražší.</p>
+    <h2>Van (kamper)</h2>
+    <p>Kompaktní dodávka s vybavením pro dva. Snadné parkování, nízká spotřeba a skvělá manévrovatelnost. Prostoru na delší pobyt ale mnoho není.</p>
+    <div class="tip"><b>Jak se rozhodnout?</b> Vyberte podle počtu lidí a podle toho, jak dlouho pojedete. Pro rodinu na dva týdny je alkovna často nejrozumnější volba.</div>
+      </div>
+      <div class="article-cta">
+        <div><strong>Chcete to zkusit na vlastní kůži?</strong><br><span class="muted">Vyberte termín a rezervujte si náš Forster A 699 HB.</span></div>
+        <a class="btn" href="rezervace.html">Rezervovat vůz</a>
+      </div>
+      <div class="pager">
+        <a href="#desatero-pohoda"><small>← Předchozí</small><span>Deset rad pro pohodovou dovolenou v obytňáku</span></a>
+        <a href="#obytnak-nebo-prives" class="r"><small>Další →</small><span>Obytný vůz, nebo karavan za autem?</span></a>
+      </div>
+    </div>
+    <div class="wrap" style="margin-top:56px">
+      <h2 class="center" style="font-size:1.5rem">Další články</h2>
+      <div class="grid g3" style="margin-top:24px">
+        <article class="post" data-cat="Jak vybrat vůz">
+          <a href="#obytnak-nebo-prives" tabindex="-1" aria-hidden="true"><img src="src/IMG_9574_jpg-2.jpg" alt="" loading="lazy" style="object-position:center 70%"></a>
+          <div class="body">
+            <span class="meta">Jak vybrat vůz</span>
+            <h3><a href="#obytnak-nebo-prives">Obytný vůz, nebo karavan za autem?</a></h3>
+            <p class="muted">Dvě cesty k podobnému cíli. Porovnáváme pohodlí, cenu, řízení i praktičnost obou variant.</p>
+            <a class="more" href="#obytnak-nebo-prives">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Pro začátečníky">
+          <a href="#prvni-pronajem" tabindex="-1" aria-hidden="true"><img src="src/IMG_9610.jpg" alt="" loading="lazy" style="object-position:center 40%"></a>
+          <div class="body">
+            <span class="meta">Pro začátečníky</span>
+            <h3><a href="#prvni-pronajem">První pronájem obytňáku: co vás čeká</a></h3>
+            <p class="muted">Jak si vybrat vůz, co si projít při převzetí a čeho se nemusíte bát. Průvodce pro úplné nováčky.</p>
+            <a class="more" href="#prvni-pronajem">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Praktické">
+          <a href="#co-sbalit" tabindex="-1" aria-hidden="true"><img src="src/0f45ec1f-7c8d-42bc-b82d-c76d93101043.webp" alt="" loading="lazy" style="object-position:center"></a>
+          <div class="body">
+            <span class="meta">Praktické</span>
+            <h3><a href="#co-sbalit">Co si sbalit na cesty obytným autem</a></h3>
+            <p class="muted">Kontrolní seznam, který vám ušetří nervy. Co vzít, co nechat doma a jak to chytře uložit.</p>
+            <a class="more" href="#co-sbalit">Číst článek →</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ČLÁNEK 5: Obytný vůz, nebo karavan za autem? -->
+  <section class="section article-page" id="obytnak-nebo-prives">
+    <div class="wrap article-wrap">
+      <a class="back" href="blog.html">← Zpět na všechny články</a>
+      <span class="eyebrow">Jak vybrat vůz</span>
+      <h1>Obytný vůz, nebo karavan za autem?</h1>
+      <p class="lead-text">Dvě cesty k podobnému cíli. Porovnáváme pohodlí, cenu, řízení i praktičnost obou variant.</p>
+      <img class="cover" src="src/IMG_9574_jpg-2.jpg" alt="" style="object-position:center 70%">
+      <div class="article">
+    <p>Obytňák a karavan (obytný přívěs) mají společný cíl: pohodlné bydlení na cestách. Liší se ale tím, jak se s nimi cestuje.</p>
+    <h2>Obytný vůz – vše v jednom</h2>
+    <ul>
+      <li>Jedete a bydlíte v jednom vozidle – zastavíte, kdy chcete.</li>
+      <li>Kabina je s obytnou částí propojená, i při zastávce v dešti se nemusíte namočit.</li>
+      <li>Na místě zůstanete i s vozem, kterým jste přijeli, takže výlet na nákup vyžaduje sbalení celého tábora.</li>
+    </ul>
+    <h2>Karavan – dům, který odpojíte</h2>
+    <ul>
+      <li>Tažné vozidlo zůstává volné, takže se můžete v okolí pohybovat bez sbalení.</li>
+      <li>Nižší pořizovací cena a pro někoho jednodušší údržba.</li>
+      <li>Vyžaduje zkušenost s couváním se zapřaženým přívěsem a vhodné tažné vozidlo. Podle hmotností může být potřeba i jiná skupina řidičského oprávnění než B.</li>
+    </ul>
+    <h2>Který si vybrat?</h2>
+    <p>Pokud chcete každý den jinde, sedne vám obytný vůz. Pokud spíš zůstáváte týden na jednom místě a jezdíte z něj na výlety, může být karavan praktičtější. Pro krátký pronájem a první zkušenost je obytňák jednodušší: vezmete klíče a jedete.</p>
+      </div>
+      <div class="article-cta">
+        <div><strong>Chcete to zkusit na vlastní kůži?</strong><br><span class="muted">Vyberte termín a rezervujte si náš Forster A 699 HB.</span></div>
+        <a class="btn" href="rezervace.html">Rezervovat vůz</a>
+      </div>
+      <div class="pager">
+        <a href="#typy-obytnych-vozu"><small>← Předchozí</small><span>Alkovna, polointegrál nebo integrál? Rozdíly mezi typy vozů</span></a>
+        <a href="#jak-se-ridi-obytnak" class="r"><small>Další →</small><span>Jak se řídí obytňák: 8 tipů pro klidnou jízdu</span></a>
+      </div>
+    </div>
+    <div class="wrap" style="margin-top:56px">
+      <h2 class="center" style="font-size:1.5rem">Další články</h2>
+      <div class="grid g3" style="margin-top:24px">
+        <article class="post" data-cat="Jak vybrat vůz">
+          <a href="#typy-obytnych-vozu" tabindex="-1" aria-hidden="true"><img src="src/IMG_9616.jpg" alt="" loading="lazy" style="object-position:center 35%"></a>
+          <div class="body">
+            <span class="meta">Jak vybrat vůz</span>
+            <h3><a href="#typy-obytnych-vozu">Alkovna, polointegrál nebo integrál? Rozdíly mezi typy vozů</a></h3>
+            <p class="muted">Který typ obytného vozu se hodí pro koho? Stručný přehled výhod a nevýhod jednotlivých karoserií.</p>
+            <a class="more" href="#typy-obytnych-vozu">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Pro začátečníky">
+          <a href="#prvni-pronajem" tabindex="-1" aria-hidden="true"><img src="src/IMG_9610.jpg" alt="" loading="lazy" style="object-position:center 40%"></a>
+          <div class="body">
+            <span class="meta">Pro začátečníky</span>
+            <h3><a href="#prvni-pronajem">První pronájem obytňáku: co vás čeká</a></h3>
+            <p class="muted">Jak si vybrat vůz, co si projít při převzetí a čeho se nemusíte bát. Průvodce pro úplné nováčky.</p>
+            <a class="more" href="#prvni-pronajem">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Praktické">
+          <a href="#co-sbalit" tabindex="-1" aria-hidden="true"><img src="src/0f45ec1f-7c8d-42bc-b82d-c76d93101043.webp" alt="" loading="lazy" style="object-position:center"></a>
+          <div class="body">
+            <span class="meta">Praktické</span>
+            <h3><a href="#co-sbalit">Co si sbalit na cesty obytným autem</a></h3>
+            <p class="muted">Kontrolní seznam, který vám ušetří nervy. Co vzít, co nechat doma a jak to chytře uložit.</p>
+            <a class="more" href="#co-sbalit">Číst článek →</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ČLÁNEK 6: Jak se řídí obytňák: 8 tipů pro klidnou jízdu -->
+  <section class="section article-page" id="jak-se-ridi-obytnak">
+    <div class="wrap article-wrap">
+      <a class="back" href="blog.html">← Zpět na všechny články</a>
+      <span class="eyebrow">Technika</span>
+      <h1>Jak se řídí obytňák: 8 tipů pro klidnou jízdu</h1>
+      <p class="lead-text">Rozměry, couvání, brzdná dráha i boční vítr. Praktické rady, které vám dodají jistotu za volantem.</p>
+      <img class="cover" src="src/IMG_9616.jpg" alt="" style="object-position:center 78%">
+      <div class="article">
+    <p>Obytný vůz není o nic těžší na řízení než větší dodávka, ale pár zásad se vyplatí znát předem.</p>
+    <ol>
+      <li><b>Znejte rozměry.</b> Náš vůz měří 6,9 × 2,3 × 3,2 metru. Výška je nejčastější past: nízké podjezdy, větve, střechy čerpacích stanic.</li>
+      <li><b>Vozte se s rezervou.</b> Brzdná dráha je delší než u osobního auta. Držte větší odstup.</li>
+      <li><b>Boční vítr.</b> Vysoká karoserie je citlivá na poryvy, například na mostech nebo při míjení kamionů. Zvolněte a pevně držte volant.</li>
+      <li><b>Zatáčky.</b> Zadní převis vozu se v zatáčkách vychyluje. Při odbočování nechte víc prostoru.</li>
+      <li><b>Couvání.</b> Využijte parkovací kameru a senzory, případně požádejte spolujezdce, ať vás navádí zvenku.</li>
+      <li><b>Sjezdy a stoupání.</b> Na dlouhých klesáních řaďte nižší stupeň a brzdy jen krátce přibrzďujte, aby se nepřehřívaly.</li>
+      <li><b>Tankování.</b> Zvolte čerpací stanici s dostatečným prostorem a vysokou stříškou.</li>
+      <li><b>Kontrola před jízdou.</b> Markýza zasunutá, schůdky a střešní okna zavřená, vše volné uložené.</li>
+    </ol>
+    <div class="tip"><b>Tip:</b> První kilometry si vyzkoušejte na klidné silnici nebo na parkovišti. Za hodinu si na rozměry zvyknete.</div>
+      </div>
+      <div class="article-cta">
+        <div><strong>Chcete to zkusit na vlastní kůži?</strong><br><span class="muted">Vyberte termín a rezervujte si náš Forster A 699 HB.</span></div>
+        <a class="btn" href="rezervace.html">Rezervovat vůz</a>
+      </div>
+      <div class="pager">
+        <a href="#obytnak-nebo-prives"><small>← Předchozí</small><span>Obytný vůz, nebo karavan za autem?</span></a>
+        <a href="#kde-prespat" class="r"><small>Další →</small><span>Kde přespat s obytňákem: kempy, areály i parkoviště</span></a>
+      </div>
+    </div>
+    <div class="wrap" style="margin-top:56px">
+      <h2 class="center" style="font-size:1.5rem">Další články</h2>
+      <div class="grid g3" style="margin-top:24px">
+        <article class="post" data-cat="Technika">
+          <a href="#zima-v-obytnaku" tabindex="-1" aria-hidden="true"><img src="src/IMG_9603.jpg" alt="" loading="lazy" style="object-position:center 55%"></a>
+          <div class="body">
+            <span class="meta">Technika</span>
+            <h3><a href="#zima-v-obytnaku">Obytným autem i v zimě: teplo, lyže a klid</a></h3>
+            <p class="muted">Kdo řekl, že se obytňák hodí jen na léto? Jak se připravit na chladné dny a užít si zimní cesty.</p>
+            <a class="more" href="#zima-v-obytnaku">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Technika">
+          <a href="#leto-a-chlad" tabindex="-1" aria-hidden="true"><img src="src/0f45ec1f-7c8d-42bc-b82d-c76d93101043.webp" alt="" loading="lazy" style="object-position:right center"></a>
+          <div class="body">
+            <span class="meta">Technika</span>
+            <h3><a href="#leto-a-chlad">Jak udržet vůz v létě chladný</a></h3>
+            <p class="muted">Stín, větrání a chytré návyky. Pár rad, díky kterým se v horku nevyvaříte ani vy, ani potraviny v lednici.</p>
+            <a class="more" href="#leto-a-chlad">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Technika">
+          <a href="#elektrina-a-voda" tabindex="-1" aria-hidden="true"><img src="src/fo_alkoven_a699eb-5-9.jpg" alt="" loading="lazy" style="object-position:center"></a>
+          <div class="body">
+            <span class="meta">Technika</span>
+            <h3><a href="#elektrina-a-voda">Elektřina a voda na cestách: jak s nimi hospodařit</a></h3>
+            <p class="muted">Přídavná baterie, solární panely, přípojka na 230 V a čerstvá voda. Základy, které by měl znát každý.</p>
+            <a class="more" href="#elektrina-a-voda">Číst článek →</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ČLÁNEK 7: Kde přespat s obytňákem: kempy, areály i parkoviště -->
+  <section class="section article-page" id="kde-prespat">
+    <div class="wrap article-wrap">
+      <a class="back" href="blog.html">← Zpět na všechny články</a>
+      <span class="eyebrow">Praktické</span>
+      <h1>Kde přespat s obytňákem: kempy, areály i parkoviště</h1>
+      <p class="lead-text">Kemp, areál pro obytné vozy, nebo soukromý pozemek? Přehled možností a pravidel, která je dobré znát.</p>
+      <img class="cover" src="src/0f45ec1f-7c8d-42bc-b82d-c76d93101043.webp" alt="" style="object-position:left center">
+      <div class="article">
+    <p>Otázka „kde budeme spát?“ provází každou cestu obytným vozem. Naštěstí je možností dost.</p>
+    <h2>Kempy</h2>
+    <p>Nejjistější volba. Přípojka elektřiny, voda, sociální zařízení a místo na vypuštění odpadních vod. V sezóně a o víkendech se vyplatí rezervovat předem.</p>
+    <h2>Areály pro obytné vozy</h2>
+    <p>Zejména v Německu, Rakousku nebo Francii jsou oblíbené menší areály přímo pro obytné vozy. Bývají levnější než kempy a často leží přímo u města nebo koupaliště. Vybavení je základní – většinou stání, elektřina a voda.</p>
+    <h2>Soukromé pozemky a farmy</h2>
+    <p>Někteří vinaři, farmáři nebo majitelé penzionů nabízejí stání s vlastním zázemím. Vždy se předem dohodněte a zeptejte se na pravidla.</p>
+    <h2>Parkoviště a příroda</h2>
+    <p>Přespání mimo kempy je v mnoha zemích omezené nebo zakázané, zejména v chráněných územích a národních parcích. Než se rozhodnete přenocovat na parkovišti nebo v přírodě, zjistěte si aktuální místní pravidla a vždy respektujte značení.</p>
+    <div class="tip"><b>Zlaté pravidlo:</b> Nechte místo čistší, než jste ho našli. Tak zůstane obytňákům otevřené i pro další.</div>
+      </div>
+      <div class="article-cta">
+        <div><strong>Chcete to zkusit na vlastní kůži?</strong><br><span class="muted">Vyberte termín a rezervujte si náš Forster A 699 HB.</span></div>
+        <a class="btn" href="rezervace.html">Rezervovat vůz</a>
+      </div>
+      <div class="pager">
+        <a href="#jak-se-ridi-obytnak"><small>← Předchozí</small><span>Jak se řídí obytňák: 8 tipů pro klidnou jízdu</span></a>
+        <a href="#vysocina-obytnakem" class="r"><small>Další →</small><span>Vysočina obytným autem: klid, lesy a Sázava</span></a>
+      </div>
+    </div>
+    <div class="wrap" style="margin-top:56px">
+      <h2 class="center" style="font-size:1.5rem">Další články</h2>
+      <div class="grid g3" style="margin-top:24px">
+        <article class="post" data-cat="Praktické">
+          <a href="#co-sbalit" tabindex="-1" aria-hidden="true"><img src="src/0f45ec1f-7c8d-42bc-b82d-c76d93101043.webp" alt="" loading="lazy" style="object-position:center"></a>
+          <div class="body">
+            <span class="meta">Praktické</span>
+            <h3><a href="#co-sbalit">Co si sbalit na cesty obytným autem</a></h3>
+            <p class="muted">Kontrolní seznam, který vám ušetří nervy. Co vzít, co nechat doma a jak to chytře uložit.</p>
+            <a class="more" href="#co-sbalit">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Praktické">
+          <a href="#varime-v-obytnaku" tabindex="-1" aria-hidden="true"><img src="src/fo_alkoven_a699eb-5-9.jpg" alt="" loading="lazy" style="object-position:center 40%"></a>
+          <div class="body">
+            <span class="meta">Praktické</span>
+            <h3><a href="#varime-v-obytnaku">Vaříme v obytňáku: jednoduchá jídla z jedné pánve</a></h3>
+            <p class="muted">Malá kuchyň nemusí znamenat malá chuť. Nápady na rychlá jídla, nákupy a úsporu vody.</p>
+            <a class="more" href="#varime-v-obytnaku">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Pro začátečníky">
+          <a href="#prvni-pronajem" tabindex="-1" aria-hidden="true"><img src="src/IMG_9610.jpg" alt="" loading="lazy" style="object-position:center 40%"></a>
+          <div class="body">
+            <span class="meta">Pro začátečníky</span>
+            <h3><a href="#prvni-pronajem">První pronájem obytňáku: co vás čeká</a></h3>
+            <p class="muted">Jak si vybrat vůz, co si projít při převzetí a čeho se nemusíte bát. Průvodce pro úplné nováčky.</p>
+            <a class="more" href="#prvni-pronajem">Číst článek →</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ČLÁNEK 8: Vysočina obytným autem: klid, lesy a Sázava -->
+  <section class="section article-page" id="vysocina-obytnakem">
+    <div class="wrap article-wrap">
+      <a class="back" href="blog.html">← Zpět na všechny články</a>
+      <span class="eyebrow">Cestování po Česku</span>
+      <h1>Vysočina obytným autem: klid, lesy a Sázava</h1>
+      <p class="lead-text">Máte vůz převzatý ve Světlé nad Sázavou? Tady je pár nápadů na výlety, které začínají hned za dveřmi.</p>
+      <img class="cover" src="src/0f45ec1f-7c8d-42bc-b82d-c76d93101043.webp" alt="" style="object-position:center 40%">
+      <div class="article">
+    <p>Vysočina je ideální pro obytňák: kopcovitá krajina, rybníky, hluboké lesy a malá městečka, kde se dá zastavit na kávu. A protože si vůz převezmete ve Světlé nad Sázavou, můžete vyrazit rovnou.</p>
+    <h2>Údolí Sázavy</h2>
+    <p>Řeka Sázava je oblíbená u vodáků a její okolí láká k procházkám i cyklistice. Několik kempů leží přímo u vody. Z Ledče nad Sázavou se můžete podívat na místní hrad.</p>
+    <h2>Žďárské vrchy a Zelená hora</h2>
+    <p>Chráněná krajinná oblast plná rybníků, luk a lesů. Poutní kostel svatého Jana Nepomuckého na Zelené hoře u Žďáru nad Sázavou je zapsán na seznamu světového dědictví UNESCO a je jednou z nejzajímavějších staveb v Česku.</p>
+    <h2>Telč</h2>
+    <p>Malebné náměstí s renesančními a barokními domy patří k nejkrásnějším v zemi. Telč je rovněž zapsána v seznamu UNESCO a je od Světlé dosažitelná zhruba za hodinu a půl jízdy.</p>
+    <h2>Pernštejn</h2>
+    <p>Jeden z nejmohutnějších českých hradů leží u Nedvědice a je skvělým cílem pro jednodenní výlet nebo dva dny s kempem v okolí.</p>
+    <div class="tip"><b>Tip:</b> Na Vysočině se neplánuje po kilometrech, ale po zastávkách. Vyberte si dvě až tři cíle a mezi nimi si nechte čas na koupání a procházky.</div>
+    <p>Před cestou si ověřte aktuální otevírací dobu a ceny vstupného. Údaje se mohou měnit.</p>
+      </div>
+      <div class="article-cta">
+        <div><strong>Chcete to zkusit na vlastní kůži?</strong><br><span class="muted">Vyberte termín a rezervujte si náš Forster A 699 HB.</span></div>
+        <a class="btn" href="rezervace.html">Rezervovat vůz</a>
+      </div>
+      <div class="pager">
+        <a href="#kde-prespat"><small>← Předchozí</small><span>Kde přespat s obytňákem: kempy, areály i parkoviště</span></a>
+        <a href="#grossglockner" class="r"><small>Další →</small><span>Grossglockner: alpská silnice pro obytňák</span></a>
+      </div>
+    </div>
+    <div class="wrap" style="margin-top:56px">
+      <h2 class="center" style="font-size:1.5rem">Další články</h2>
+      <div class="grid g3" style="margin-top:24px">
+        <article class="post" data-cat="Cestování po Česku">
+          <a href="#jizni-morava-vino" tabindex="-1" aria-hidden="true"><img src="src/IMG_9574_jpg-2.jpg" alt="" loading="lazy" style="object-position:center 60%"></a>
+          <div class="body">
+            <span class="meta">Cestování po Česku</span>
+            <h3><a href="#jizni-morava-vino">Jižní Morava za vínem: sklepy, vinice a klid</a></h3>
+            <p class="muted">Jak si užít vinařskou cestu bez starostí o odvoz. Vinné sklepy, cyklostezky a pár praktických rad.</p>
+            <a class="more" href="#jizni-morava-vino">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Pro začátečníky">
+          <a href="#prvni-pronajem" tabindex="-1" aria-hidden="true"><img src="src/IMG_9610.jpg" alt="" loading="lazy" style="object-position:center 40%"></a>
+          <div class="body">
+            <span class="meta">Pro začátečníky</span>
+            <h3><a href="#prvni-pronajem">První pronájem obytňáku: co vás čeká</a></h3>
+            <p class="muted">Jak si vybrat vůz, co si projít při převzetí a čeho se nemusíte bát. Průvodce pro úplné nováčky.</p>
+            <a class="more" href="#prvni-pronajem">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Praktické">
+          <a href="#co-sbalit" tabindex="-1" aria-hidden="true"><img src="src/0f45ec1f-7c8d-42bc-b82d-c76d93101043.webp" alt="" loading="lazy" style="object-position:center"></a>
+          <div class="body">
+            <span class="meta">Praktické</span>
+            <h3><a href="#co-sbalit">Co si sbalit na cesty obytným autem</a></h3>
+            <p class="muted">Kontrolní seznam, který vám ušetří nervy. Co vzít, co nechat doma a jak to chytře uložit.</p>
+            <a class="more" href="#co-sbalit">Číst článek →</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ČLÁNEK 9: Grossglockner: alpská silnice pro obytňák -->
+  <section class="section article-page" id="grossglockner">
+    <div class="wrap article-wrap">
+      <a class="back" href="blog.html">← Zpět na všechny články</a>
+      <span class="eyebrow">Cestování v zahraničí</span>
+      <h1>Grossglockner: alpská silnice pro obytňák</h1>
+      <p class="lead-text">Serpentiny, ledovec a výhledy na nejvyšší horu Rakouska. Na co se připravit před jízdou.</p>
+      <img class="cover" src="src/Grossglockner-Hochalpenstrasse-35c513e7-828b-4444-861d-616a0269dcc5.webp" alt="" style="object-position:center 60%">
+      <div class="article">
+    <p>Grossglockner Hochalpenstrasse patří k nejslavnějším horským silnicím v Evropě. Vede po úbočí nejvyšší hory Rakouska a nabízí výhledy, které si vryjí do paměti.</p>
+    <h2>Co vás čeká</h2>
+    <ul>
+      <li>Desítky serpentin a stoupání do výšky přes 2 500 metrů nad mořem.</li>
+      <li>Vyhlídky, informační centra a stezky přímo u silnice.</li>
+      <li>Pohled na ledovec Pasterze z vyhlídky u konce cesty.</li>
+    </ul>
+    <h2>Jak se připravit</h2>
+    <ul>
+      <li><b>Mýtné a otevírací doba:</b> silnice je zpoplatněná a otevřená sezónně. Aktuální podmínky si ověřte předem na oficiálních stránkách.</li>
+      <li><b>Vyrazte brzy ráno.</b> Je méně aut a lepší světlo pro fotky.</li>
+      <li><b>Brzdy a převodovka.</b> Při klesání řaďte nižší stupeň a nepřehřívejte brzdy.</li>
+      <li><b>Počasí.</b> V horách se mění rychle. Sbalte teplé oblečení i v létě.</li>
+    </ul>
+    <p>S obytným vozem tu nikam nespěcháte. Zastavíte u každé vyhlídky, uvaříte si kávu a jedete dál. Před cestou si ověřte aktuální omezení pro vozidla podle rozměrů.</p>
+      </div>
+      <div class="article-cta">
+        <div><strong>Chcete to zkusit na vlastní kůži?</strong><br><span class="muted">Vyberte termín a rezervujte si náš Forster A 699 HB.</span></div>
+        <a class="btn" href="rezervace.html">Rezervovat vůz</a>
+      </div>
+      <div class="pager">
+        <a href="#vysocina-obytnakem"><small>← Předchozí</small><span>Vysočina obytným autem: klid, lesy a Sázava</span></a>
+        <a href="#jizni-morava-vino" class="r"><small>Další →</small><span>Jižní Morava za vínem: sklepy, vinice a klid</span></a>
+      </div>
+    </div>
+    <div class="wrap" style="margin-top:56px">
+      <h2 class="center" style="font-size:1.5rem">Další články</h2>
+      <div class="grid g3" style="margin-top:24px">
+        <article class="post" data-cat="Pro začátečníky">
+          <a href="#prvni-pronajem" tabindex="-1" aria-hidden="true"><img src="src/IMG_9610.jpg" alt="" loading="lazy" style="object-position:center 40%"></a>
+          <div class="body">
+            <span class="meta">Pro začátečníky</span>
+            <h3><a href="#prvni-pronajem">První pronájem obytňáku: co vás čeká</a></h3>
+            <p class="muted">Jak si vybrat vůz, co si projít při převzetí a čeho se nemusíte bát. Průvodce pro úplné nováčky.</p>
+            <a class="more" href="#prvni-pronajem">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Praktické">
+          <a href="#co-sbalit" tabindex="-1" aria-hidden="true"><img src="src/0f45ec1f-7c8d-42bc-b82d-c76d93101043.webp" alt="" loading="lazy" style="object-position:center"></a>
+          <div class="body">
+            <span class="meta">Praktické</span>
+            <h3><a href="#co-sbalit">Co si sbalit na cesty obytným autem</a></h3>
+            <p class="muted">Kontrolní seznam, který vám ušetří nervy. Co vzít, co nechat doma a jak to chytře uložit.</p>
+            <a class="more" href="#co-sbalit">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Pro začátečníky">
+          <a href="#desatero-pohoda" tabindex="-1" aria-hidden="true"><img src="src/IMG_9574_jpg-2.jpg" alt="" loading="lazy" style="object-position:center 62%"></a>
+          <div class="body">
+            <span class="meta">Pro začátečníky</span>
+            <h3><a href="#desatero-pohoda">Deset rad pro pohodovou dovolenou v obytňáku</a></h3>
+            <p class="muted">Zkušenosti, které se hodí každému. Desetkrát jinak o tom, jak si cestu opravdu užít.</p>
+            <a class="more" href="#desatero-pohoda">Číst článek →</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ČLÁNEK 10: Jižní Morava za vínem: sklepy, vinice a klid -->
+  <section class="section article-page" id="jizni-morava-vino">
+    <div class="wrap article-wrap">
+      <a class="back" href="blog.html">← Zpět na všechny články</a>
+      <span class="eyebrow">Cestování po Česku</span>
+      <h1>Jižní Morava za vínem: sklepy, vinice a klid</h1>
+      <p class="lead-text">Jak si užít vinařskou cestu bez starostí o odvoz. Vinné sklepy, cyklostezky a pár praktických rad.</p>
+      <img class="cover" src="src/IMG_9574_jpg-2.jpg" alt="" style="object-position:center 60%">
+      <div class="article">
+    <p>Jižní Morava a obytný vůz k sobě patří. Krajina plná vinic, sklepní uličky a vlídní vinaři, kteří rádi ukážou svoje nejlepší vína. Největší výhodou? Bydlíte přímo tam, kde ochutnáváte, a nemusíte hledat ubytování ani se s nikým domlouvat na času příjezdu.</p>
+    <p>Kdo to zkusí poprvé, obvykle zjistí, že se tu nejlépe cestuje bez velkého plánu. Ráno vyrazíte na kolech mezi vinicemi, odpoledne se zastavíte v zavřeném sklípku na skleničku a večer si rozložíte markýzu, uvaříte večeři a posloucháte cvrčky. Právě takové cesty si lidé pamatují nejdéle.</p>
+
+    <h2>Čtyři vinařské podoblasti</h2>
+    <p>Moravské vinařství se dělí na čtyři podoblasti: mikulovskou, slováckou, velkopavlovickou a znojemskou. Každá má trochu jiný charakter. Pro první cestu je nejjednodušší vybrat si jednu z nich a prozkoumat ji pořádně, místo aby vás několik set kilometrů ženilo od sklepa ke sklepu.</p>
+
+    <h2>Kam vyrazit</h2>
+    <ul>
+      <li><b>Velké Bílovice</b> – vinařská obec s nádhernými sklepními uličkami, kde se v sezóně často pořádají ochutnávky a slavnosti.</li>
+      <li><b>Mikulov</b> – město pod zámkem a kopcem Svatý kopeček, s vinicemi na dosah a spoustou vinařských restaurací.</li>
+      <li><b>Pálava a Novomlýnské nádrže</b> – vápencové kopce, koupání a kempy přímo u vody. Ideální kombinace pro rodiny i pro ty, kdo chtějí ochutnávat a zároveň relaxovat u jezera.</li>
+      <li><b>Lednicko-valtický areál</b> – zámky, parky, rybníky a romantické stavby, zapsané mezi památky UNESCO. Sedí se na kolo a projedete ho za den.</li>
+      <li><b>Znojmo a okolí</b> – historické město nad řekou Dyjí, vinice a menší vinařské obce v tichém okolí.</li>
+    </ul>
+
+    <h2>Návrh prodlouženého víkendu</h2>
+    <p>Pokud vyrazíte po převzetí vozu ve Světlé nad Sázavou, počítejte s jízdou zhruba tři hodiny. Jeden možný plán vypadá takto:</p>
+    <ul>
+      <li><b>Pátek:</b> příjezd, ubytování v kempu nebo na stání u vinaře, procházka po vesnici a večer u markýzy.</li>
+      <li><b>Sobota:</b> ráno na kolech po vinařské stezce, odpoledne návštěva jednoho či dvou sklepů, večer grilování.</li>
+      <li><b>Neděle:</b> výlet k jezeru nebo do Lednicko-valtického areálu, cestou domů zastávka na nákup vín a místních specialit.</li>
+    </ul>
+
+    <h2>Praktické rady</h2>
+    <ul>
+      <li><b>Řidič nepije.</b> V Česku platí nulová tolerance alkoholu za volantem. Pijete jen tehdy, když vůz zůstane stát – a ideálně máte domluveno, kdo bude druhý den řídit.</li>
+      <li><b>Zeptejte se na stání.</b> Někteří vinaři nabízejí místo pro obytný vůz přímo u sklepa. Domluvte se předem a zeptejte se, zda je k dispozici elektřina a voda.</li>
+      <li><b>Pozor na úzké uličky.</b> Náš vůz měří 6,9 metru a je vysoký 3,2 metru. V historických částech obcí je lepší zaparkovat na okraji a dojít pěšky.</li>
+      <li><b>Kola s sebou.</b> Vůz má nosič na čtyři kola. Vinařské stezky jsou dobře značené a ideální pro pohodovou vyjížďku.</li>
+      <li><b>Neplňte vůz vínem.</b> Malé množství stačí. Láhve dobře zajistěte, aby při jízdě nechrastily, a nenechávejte je na přímém slunci.</li>
+      <li><b>Burčák.</b> Na podzim se prodává mladé kvasící víno, které nesmí být v pevně uzavřené láhvi. Vezměte si ho na místě, ne na cestu.</li>
+    </ul>
+
+    <h2>Kdy jet</h2>
+    <p>Nejlepší období? Září až říjen, kdy je sklizeň, mošt i příjemné počasí. Také jaro bývá krásné: na vinicích raší listí a v mnoha obcích se pořádají dny otevřených sklepů. Termíny akcí se každý rok mění, proto je před cestou ověřte na stránkách obcí nebo vinařských spolků.</p>
+    <p>Letní měsíce jsou horké a v sezóně bývají kempy u vody plné, takže s předstihem rezervujte. Naopak v zimě je vinařský kraj klidný, ale řada sklepů je otevřena jen po předchozí domluvě.</p>
+
+    <div class="tip"><b>Tip:</b> Nevozte si víno domů „na sklad“. Kupte si několik lahví, které vás na cestě opravdu zaujaly, a ostatní si nechte na příště. Máte tak důvod se vrátit.</div>
+      </div>
+      <div class="article-cta">
+        <div><strong>Chcete to zkusit na vlastní kůži?</strong><br><span class="muted">Vyberte termín a rezervujte si náš Forster A 699 HB.</span></div>
+        <a class="btn" href="rezervace.html">Rezervovat vůz</a>
+      </div>
+      <div class="pager">
+        <a href="#grossglockner"><small>← Předchozí</small><span>Grossglockner: alpská silnice pro obytňák</span></a>
+        <a href="#s-detmi" class="r"><small>Další →</small><span>S dětmi v obytném voze: rodinná dovolená bez stresu</span></a>
+      </div>
+    </div>
+    <div class="wrap" style="margin-top:56px">
+      <h2 class="center" style="font-size:1.5rem">Další články</h2>
+      <div class="grid g3" style="margin-top:24px">
+        <article class="post" data-cat="Cestování po Česku">
+          <a href="#vysocina-obytnakem" tabindex="-1" aria-hidden="true"><img src="src/0f45ec1f-7c8d-42bc-b82d-c76d93101043.webp" alt="" loading="lazy" style="object-position:center 40%"></a>
+          <div class="body">
+            <span class="meta">Cestování po Česku</span>
+            <h3><a href="#vysocina-obytnakem">Vysočina obytným autem: klid, lesy a Sázava</a></h3>
+            <p class="muted">Máte vůz převzatý ve Světlé nad Sázavou? Tady je pár nápadů na výlety, které začínají hned za dveřmi.</p>
+            <a class="more" href="#vysocina-obytnakem">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Pro začátečníky">
+          <a href="#prvni-pronajem" tabindex="-1" aria-hidden="true"><img src="src/IMG_9610.jpg" alt="" loading="lazy" style="object-position:center 40%"></a>
+          <div class="body">
+            <span class="meta">Pro začátečníky</span>
+            <h3><a href="#prvni-pronajem">První pronájem obytňáku: co vás čeká</a></h3>
+            <p class="muted">Jak si vybrat vůz, co si projít při převzetí a čeho se nemusíte bát. Průvodce pro úplné nováčky.</p>
+            <a class="more" href="#prvni-pronajem">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Praktické">
+          <a href="#co-sbalit" tabindex="-1" aria-hidden="true"><img src="src/0f45ec1f-7c8d-42bc-b82d-c76d93101043.webp" alt="" loading="lazy" style="object-position:center"></a>
+          <div class="body">
+            <span class="meta">Praktické</span>
+            <h3><a href="#co-sbalit">Co si sbalit na cesty obytným autem</a></h3>
+            <p class="muted">Kontrolní seznam, který vám ušetří nervy. Co vzít, co nechat doma a jak to chytře uložit.</p>
+            <a class="more" href="#co-sbalit">Číst článek →</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ČLÁNEK 11: S dětmi v obytném voze: rodinná dovolená bez stresu -->
+  <section class="section article-page" id="s-detmi">
+    <div class="wrap article-wrap">
+      <a class="back" href="blog.html">← Zpět na všechny články</a>
+      <span class="eyebrow">Pro rodiny</span>
+      <h1>S dětmi v obytném voze: rodinná dovolená bez stresu</h1>
+      <p class="lead-text">Alkovna jako dobrodružství, bezpečná jízda a nápady, jak zabavit děti na cestě i v kempu.</p>
+      <img class="cover" src="src/IMG_9616.jpg" alt="" style="object-position:center 40%">
+      <div class="article">
+    <p>Obytný vůz a děti jsou skvělá kombinace. Mají vlastní pelíšek, můžete zastavit, kdykoli potřebují a nemusíte se bát cizích hotelových pokojů.</p>
+    <h2>Bezpečnost hlavně</h2>
+    <ul>
+      <li>Za jízdy cestují všichni jen na místech s bezpečnostními pásy, nikdy v alkovně nebo na posteli.</li>
+      <li>Náš vůz má ISOFIX pro dětské autosedačky. Vezměte si vlastní, na které jsou děti zvyklé.</li>
+      <li>Žebřík do alkovny vyzkoušejte předem. Hodí se spíš pro starší děti, malé raději spí dole.</li>
+    </ul>
+    <h2>Plán na cestu</h2>
+    <p>Kratší etapy, pravidelné přestávky a hřiště po cestě. Děti nemusíte zabavit celý den, stačí, aby na ně čekalo něco zajímavého.</p>
+    <h2>V kempu</h2>
+    <p>Vybírejte místa s hřištěm, koupalištěm nebo rybníkem. Děti si najdou kamarády a vy si užijete klid u markýzy.</p>
+    <h2>Co vzít s sebou</h2>
+    <ul>
+      <li>Oblíbené hračky a knížky, deskové hry a karty.</li>
+      <li>Pár míčů, badmintonovou sadu nebo frisbee.</li>
+      <li>Něco na dlouhé cesty, například audioknihy.</li>
+    </ul>
+    <div class="tip"><b>Tip:</b> Nechte děti podílet se na chodu vozu. Chystání stolu nebo skládání židlí je dobrodružství samo o sobě.</div>
+      </div>
+      <div class="article-cta">
+        <div><strong>Chcete to zkusit na vlastní kůži?</strong><br><span class="muted">Vyberte termín a rezervujte si náš Forster A 699 HB.</span></div>
+        <a class="btn" href="rezervace.html">Rezervovat vůz</a>
+      </div>
+      <div class="pager">
+        <a href="#jizni-morava-vino"><small>← Předchozí</small><span>Jižní Morava za vínem: sklepy, vinice a klid</span></a>
+        <a href="#zima-v-obytnaku" class="r"><small>Další →</small><span>Obytným autem i v zimě: teplo, lyže a klid</span></a>
+      </div>
+    </div>
+    <div class="wrap" style="margin-top:56px">
+      <h2 class="center" style="font-size:1.5rem">Další články</h2>
+      <div class="grid g3" style="margin-top:24px">
+        <article class="post" data-cat="Pro začátečníky">
+          <a href="#prvni-pronajem" tabindex="-1" aria-hidden="true"><img src="src/IMG_9610.jpg" alt="" loading="lazy" style="object-position:center 40%"></a>
+          <div class="body">
+            <span class="meta">Pro začátečníky</span>
+            <h3><a href="#prvni-pronajem">První pronájem obytňáku: co vás čeká</a></h3>
+            <p class="muted">Jak si vybrat vůz, co si projít při převzetí a čeho se nemusíte bát. Průvodce pro úplné nováčky.</p>
+            <a class="more" href="#prvni-pronajem">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Praktické">
+          <a href="#co-sbalit" tabindex="-1" aria-hidden="true"><img src="src/0f45ec1f-7c8d-42bc-b82d-c76d93101043.webp" alt="" loading="lazy" style="object-position:center"></a>
+          <div class="body">
+            <span class="meta">Praktické</span>
+            <h3><a href="#co-sbalit">Co si sbalit na cesty obytným autem</a></h3>
+            <p class="muted">Kontrolní seznam, který vám ušetří nervy. Co vzít, co nechat doma a jak to chytře uložit.</p>
+            <a class="more" href="#co-sbalit">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Pro začátečníky">
+          <a href="#desatero-pohoda" tabindex="-1" aria-hidden="true"><img src="src/IMG_9574_jpg-2.jpg" alt="" loading="lazy" style="object-position:center 62%"></a>
+          <div class="body">
+            <span class="meta">Pro začátečníky</span>
+            <h3><a href="#desatero-pohoda">Deset rad pro pohodovou dovolenou v obytňáku</a></h3>
+            <p class="muted">Zkušenosti, které se hodí každému. Desetkrát jinak o tom, jak si cestu opravdu užít.</p>
+            <a class="more" href="#desatero-pohoda">Číst článek →</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ČLÁNEK 12: Obytným autem i v zimě: teplo, lyže a klid -->
+  <section class="section article-page" id="zima-v-obytnaku">
+    <div class="wrap article-wrap">
+      <a class="back" href="blog.html">← Zpět na všechny články</a>
+      <span class="eyebrow">Technika</span>
+      <h1>Obytným autem i v zimě: teplo, lyže a klid</h1>
+      <p class="lead-text">Kdo řekl, že se obytňák hodí jen na léto? Jak se připravit na chladné dny a užít si zimní cesty.</p>
+      <img class="cover" src="src/IMG_9603.jpg" alt="" style="object-position:center 55%">
+      <div class="article">
+    <p>Zimní cestování obytným autem má své kouzlo: prázdné kempy, ticho a večer v teple po celodenním lyžování. Chce to ale trochu přípravy.</p>
+    <h2>Vytápění a voda</h2>
+    <p>Náš vůz má nezávislé topení a vyhřívanou odpadní nádrž, které pomáhají udržet provoz i za nižších teplot. Před cestou si přesto s nájemcem projděte, jak je správně používat.</p>
+    <h2>Pneumatiky a výbava</h2>
+    <p>Za zimních podmínek jsou zimní pneumatiky nutností. Do hor si vezměte i sněhové řetězy a ověřte, jaké výbavy vyžadují země, kterými pojedete.</p>
+    <h2>Větrání a vlhkost</h2>
+    <p>Při vaření a dýchání vzniká v prostoru vlhkost. Občas krátce vyvětrejte, aby se na oknech a ve skříňkách nesrážela voda.</p>
+    <h2>Kam se vydat</h2>
+    <ul>
+      <li>Česká pohoří – Krkonoše, Šumava, Jeseníky nebo Beskydy.</li>
+      <li>Lyžařská střediska v Rakousku či Itálii s parkovišti pro obytné vozy.</li>
+      <li>Termální lázně, kde se po dni v zimě příjemně zahřejete.</li>
+    </ul>
+    <div class="tip"><b>Tip:</b> V zimě se dřív stmívá. Trasu plánujte tak, ať do kempu dojedete ještě za světla.</div>
+      </div>
+      <div class="article-cta">
+        <div><strong>Chcete to zkusit na vlastní kůži?</strong><br><span class="muted">Vyberte termín a rezervujte si náš Forster A 699 HB.</span></div>
+        <a class="btn" href="rezervace.html">Rezervovat vůz</a>
+      </div>
+      <div class="pager">
+        <a href="#s-detmi"><small>← Předchozí</small><span>S dětmi v obytném voze: rodinná dovolená bez stresu</span></a>
+        <a href="#leto-a-chlad" class="r"><small>Další →</small><span>Jak udržet vůz v létě chladný</span></a>
+      </div>
+    </div>
+    <div class="wrap" style="margin-top:56px">
+      <h2 class="center" style="font-size:1.5rem">Další články</h2>
+      <div class="grid g3" style="margin-top:24px">
+        <article class="post" data-cat="Technika">
+          <a href="#jak-se-ridi-obytnak" tabindex="-1" aria-hidden="true"><img src="src/IMG_9616.jpg" alt="" loading="lazy" style="object-position:center 78%"></a>
+          <div class="body">
+            <span class="meta">Technika</span>
+            <h3><a href="#jak-se-ridi-obytnak">Jak se řídí obytňák: 8 tipů pro klidnou jízdu</a></h3>
+            <p class="muted">Rozměry, couvání, brzdná dráha i boční vítr. Praktické rady, které vám dodají jistotu za volantem.</p>
+            <a class="more" href="#jak-se-ridi-obytnak">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Technika">
+          <a href="#leto-a-chlad" tabindex="-1" aria-hidden="true"><img src="src/0f45ec1f-7c8d-42bc-b82d-c76d93101043.webp" alt="" loading="lazy" style="object-position:right center"></a>
+          <div class="body">
+            <span class="meta">Technika</span>
+            <h3><a href="#leto-a-chlad">Jak udržet vůz v létě chladný</a></h3>
+            <p class="muted">Stín, větrání a chytré návyky. Pár rad, díky kterým se v horku nevyvaříte ani vy, ani potraviny v lednici.</p>
+            <a class="more" href="#leto-a-chlad">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Technika">
+          <a href="#elektrina-a-voda" tabindex="-1" aria-hidden="true"><img src="src/fo_alkoven_a699eb-5-9.jpg" alt="" loading="lazy" style="object-position:center"></a>
+          <div class="body">
+            <span class="meta">Technika</span>
+            <h3><a href="#elektrina-a-voda">Elektřina a voda na cestách: jak s nimi hospodařit</a></h3>
+            <p class="muted">Přídavná baterie, solární panely, přípojka na 230 V a čerstvá voda. Základy, které by měl znát každý.</p>
+            <a class="more" href="#elektrina-a-voda">Číst článek →</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ČLÁNEK 13: Jak udržet vůz v létě chladný -->
+  <section class="section article-page" id="leto-a-chlad">
+    <div class="wrap article-wrap">
+      <a class="back" href="blog.html">← Zpět na všechny články</a>
+      <span class="eyebrow">Technika</span>
+      <h1>Jak udržet vůz v létě chladný</h1>
+      <p class="lead-text">Stín, větrání a chytré návyky. Pár rad, díky kterým se v horku nevyvaříte ani vy, ani potraviny v lednici.</p>
+      <img class="cover" src="src/0f45ec1f-7c8d-42bc-b82d-c76d93101043.webp" alt="" style="object-position:right center">
+      <div class="article">
+    <p>Obytný vůz se na slunci zahřívá rychle. Několik jednoduchých návyků ale zabrání tomu, aby se z něj stala sauna.</p>
+    <h2>Parkujte chytře</h2>
+    <p>Hledejte místo ve stínu stromů nebo budov. Vůz natočte tak, aby slunce nesvítilo přímo na největší okna.</p>
+    <h2>Markýza a zatemnění</h2>
+    <p>Rozložená markýza vytvoří příjemný stín před vozem. Zatemnění na oknech snižuje přehřívání vnitřku, zavřete je na straně, kam svítí slunce.</p>
+    <h2>Větrejte přes noc</h2>
+    <p>Večer a ráno otevřete střešní okna a protější okna, aby vzduch proudil. Přes den naopak větrání omezte, zahřátý vzduch zvenku by vůz jen zahříval.</p>
+    <h2>Lednice v horku</h2>
+    <ul>
+      <li>Lednici zapněte a nechte vychladit dopředu, ne až po naložení jídla.</li>
+      <li>Vůz při stání vyrovnejte, například klíny, protože některé typy ledniček to vyžadují.</li>
+      <li>Nevystavujte odvětrávací mřížky lednice přímému slunci.</li>
+      <li>Nepřecpávejte ji, vzduch musí uvnitř proudit.</li>
+    </ul>
+    <h2>Klimatizace v kabině</h2>
+    <p>Při jízdě pomáhá automatická klimatizace v kabině. Před nasednutím krátce vyvětrejte vozidlo dveřmi, ať se vyžene nejhorší horko.</p>
+      </div>
+      <div class="article-cta">
+        <div><strong>Chcete to zkusit na vlastní kůži?</strong><br><span class="muted">Vyberte termín a rezervujte si náš Forster A 699 HB.</span></div>
+        <a class="btn" href="rezervace.html">Rezervovat vůz</a>
+      </div>
+      <div class="pager">
+        <a href="#zima-v-obytnaku"><small>← Předchozí</small><span>Obytným autem i v zimě: teplo, lyže a klid</span></a>
+        <a href="#elektrina-a-voda" class="r"><small>Další →</small><span>Elektřina a voda na cestách: jak s nimi hospodařit</span></a>
+      </div>
+    </div>
+    <div class="wrap" style="margin-top:56px">
+      <h2 class="center" style="font-size:1.5rem">Další články</h2>
+      <div class="grid g3" style="margin-top:24px">
+        <article class="post" data-cat="Technika">
+          <a href="#jak-se-ridi-obytnak" tabindex="-1" aria-hidden="true"><img src="src/IMG_9616.jpg" alt="" loading="lazy" style="object-position:center 78%"></a>
+          <div class="body">
+            <span class="meta">Technika</span>
+            <h3><a href="#jak-se-ridi-obytnak">Jak se řídí obytňák: 8 tipů pro klidnou jízdu</a></h3>
+            <p class="muted">Rozměry, couvání, brzdná dráha i boční vítr. Praktické rady, které vám dodají jistotu za volantem.</p>
+            <a class="more" href="#jak-se-ridi-obytnak">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Technika">
+          <a href="#zima-v-obytnaku" tabindex="-1" aria-hidden="true"><img src="src/IMG_9603.jpg" alt="" loading="lazy" style="object-position:center 55%"></a>
+          <div class="body">
+            <span class="meta">Technika</span>
+            <h3><a href="#zima-v-obytnaku">Obytným autem i v zimě: teplo, lyže a klid</a></h3>
+            <p class="muted">Kdo řekl, že se obytňák hodí jen na léto? Jak se připravit na chladné dny a užít si zimní cesty.</p>
+            <a class="more" href="#zima-v-obytnaku">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Technika">
+          <a href="#elektrina-a-voda" tabindex="-1" aria-hidden="true"><img src="src/fo_alkoven_a699eb-5-9.jpg" alt="" loading="lazy" style="object-position:center"></a>
+          <div class="body">
+            <span class="meta">Technika</span>
+            <h3><a href="#elektrina-a-voda">Elektřina a voda na cestách: jak s nimi hospodařit</a></h3>
+            <p class="muted">Přídavná baterie, solární panely, přípojka na 230 V a čerstvá voda. Základy, které by měl znát každý.</p>
+            <a class="more" href="#elektrina-a-voda">Číst článek →</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ČLÁNEK 14: Elektřina a voda na cestách: jak s nimi hospodařit -->
+  <section class="section article-page" id="elektrina-a-voda">
+    <div class="wrap article-wrap">
+      <a class="back" href="blog.html">← Zpět na všechny články</a>
+      <span class="eyebrow">Technika</span>
+      <h1>Elektřina a voda na cestách: jak s nimi hospodařit</h1>
+      <p class="lead-text">Přídavná baterie, solární panely, přípojka na 230 V a čerstvá voda. Základy, které by měl znát každý.</p>
+      <img class="cover" src="src/fo_alkoven_a699eb-5-9.jpg" alt="" style="object-position:center">
+      <div class="article">
+    <p>Život v obytném voze stojí na třech věcech: elektřině, vodě a odpadních vodách. Zní to složitě, ale zvládnete to velmi rychle.</p>
+    <h2>Elektřina</h2>
+    <ul>
+      <li><b>Přídavná baterie</b> napájí světla, čerpadlo vody a další spotřebiče, když nejste připojeni ke kempu.</li>
+      <li><b>Solární panely</b> na střeše baterii během dne dobíjejí. Náš vůz je má.</li>
+      <li><b>Přípojka 230 V.</b> V kempu ji připojíte prodlužovacím kabelem. Zkontrolujte, zda je kabel celý odmotaný a suchý.</li>
+      <li><b>Zásuvky 12 V a USB</b> se hodí pro nabíjení telefonů a menších přístrojů.</li>
+    </ul>
+    <h2>Čerstvá voda</h2>
+    <p>Doplňujte ji jen z pitných zdrojů pomocí čisté hadice. Šetřete při mytí a osprchování, protože zásoba není nekonečná.</p>
+    <h2>Odpadní voda a WC</h2>
+    <p>Odpadní vody i obsah toalety vypouštějte pouze na určených místech, nikdy do přírody, příkopu ani kanálu. Při předání vám ukážeme, jak to správně provést.</p>
+    <div class="tip"><b>Tip:</b> Pravidelně kontrolujte hladiny vody i stav baterie. Dvě minuty denně vám ušetří nepříjemné překvapení.</div>
+      </div>
+      <div class="article-cta">
+        <div><strong>Chcete to zkusit na vlastní kůži?</strong><br><span class="muted">Vyberte termín a rezervujte si náš Forster A 699 HB.</span></div>
+        <a class="btn" href="rezervace.html">Rezervovat vůz</a>
+      </div>
+      <div class="pager">
+        <a href="#leto-a-chlad"><small>← Předchozí</small><span>Jak udržet vůz v létě chladný</span></a>
+        <a href="#varime-v-obytnaku" class="r"><small>Další →</small><span>Vaříme v obytňáku: jednoduchá jídla z jedné pánve</span></a>
+      </div>
+    </div>
+    <div class="wrap" style="margin-top:56px">
+      <h2 class="center" style="font-size:1.5rem">Další články</h2>
+      <div class="grid g3" style="margin-top:24px">
+        <article class="post" data-cat="Technika">
+          <a href="#jak-se-ridi-obytnak" tabindex="-1" aria-hidden="true"><img src="src/IMG_9616.jpg" alt="" loading="lazy" style="object-position:center 78%"></a>
+          <div class="body">
+            <span class="meta">Technika</span>
+            <h3><a href="#jak-se-ridi-obytnak">Jak se řídí obytňák: 8 tipů pro klidnou jízdu</a></h3>
+            <p class="muted">Rozměry, couvání, brzdná dráha i boční vítr. Praktické rady, které vám dodají jistotu za volantem.</p>
+            <a class="more" href="#jak-se-ridi-obytnak">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Technika">
+          <a href="#zima-v-obytnaku" tabindex="-1" aria-hidden="true"><img src="src/IMG_9603.jpg" alt="" loading="lazy" style="object-position:center 55%"></a>
+          <div class="body">
+            <span class="meta">Technika</span>
+            <h3><a href="#zima-v-obytnaku">Obytným autem i v zimě: teplo, lyže a klid</a></h3>
+            <p class="muted">Kdo řekl, že se obytňák hodí jen na léto? Jak se připravit na chladné dny a užít si zimní cesty.</p>
+            <a class="more" href="#zima-v-obytnaku">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Technika">
+          <a href="#leto-a-chlad" tabindex="-1" aria-hidden="true"><img src="src/0f45ec1f-7c8d-42bc-b82d-c76d93101043.webp" alt="" loading="lazy" style="object-position:right center"></a>
+          <div class="body">
+            <span class="meta">Technika</span>
+            <h3><a href="#leto-a-chlad">Jak udržet vůz v létě chladný</a></h3>
+            <p class="muted">Stín, větrání a chytré návyky. Pár rad, díky kterým se v horku nevyvaříte ani vy, ani potraviny v lednici.</p>
+            <a class="more" href="#leto-a-chlad">Číst článek →</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ČLÁNEK 15: Vaříme v obytňáku: jednoduchá jídla z jedné pánve -->
+  <section class="section article-page" id="varime-v-obytnaku">
+    <div class="wrap article-wrap">
+      <a class="back" href="blog.html">← Zpět na všechny články</a>
+      <span class="eyebrow">Praktické</span>
+      <h1>Vaříme v obytňáku: jednoduchá jídla z jedné pánve</h1>
+      <p class="lead-text">Malá kuchyň nemusí znamenat malá chuť. Nápady na rychlá jídla, nákupy a úsporu vody.</p>
+      <img class="cover" src="src/fo_alkoven_a699eb-5-9.jpg" alt="" style="object-position:center 40%">
+      <div class="article">
+    <p>Kuchyň v obytném voze je menší než doma, ale úplně stačí. Klíčem je jednoduchost: jedna pánev, jeden hrnec a dobré suroviny.</p>
+    <h2>Jídla, která se osvědčila</h2>
+    <ul>
+      <li><b>Těstoviny s rajčaty a bazalkou</b> – hotovo za dvacet minut.</li>
+      <li><b>Rizoto ze zeleniny</b> – jeden hrnec a žádná práce navíc.</li>
+      <li><b>Omeleta nebo míchaná vajíčka</b> – ideální snídaně.</li>
+      <li><b>Zapékané brambory a klobásy</b> – pro večer u markýzy.</li>
+      <li><b>Wrapy a saláty</b> – když se nechce zapínat vařič.</li>
+    </ul>
+    <h2>Nakupování</h2>
+    <p>Nakupujte v místních obchodech a na trzích. Suroviny z regionu jsou čerstvé a jídlo tak chutná víc. Na první dva dny vezměte zásoby z domu, ať nemusíte hned shánět obchod.</p>
+    <h2>Šetřete vodou</h2>
+    <p>Nádobí nejdřív otřete ubrouskem, potom teprve myjte. A vodu v čajové konvici nenechávejte vařit zbytečně dlouho.</p>
+    <h2>Větrání</h2>
+    <p>Při vaření otevřete střešní okno nebo boční okno. Vůz se tak nezahltí pachy a vlhkostí.</p>
+    <div class="tip"><b>Tip:</b> Nakupujte průběžně a po troškách, v malé lednici není místo na velké zásoby.</div>
+      </div>
+      <div class="article-cta">
+        <div><strong>Chcete to zkusit na vlastní kůži?</strong><br><span class="muted">Vyberte termín a rezervujte si náš Forster A 699 HB.</span></div>
+        <a class="btn" href="rezervace.html">Rezervovat vůz</a>
+      </div>
+      <div class="pager">
+        <a href="#elektrina-a-voda"><small>← Předchozí</small><span>Elektřina a voda na cestách: jak s nimi hospodařit</span></a>
+        <a href="#prvni-pronajem" class="r"><small>Další →</small><span>První pronájem obytňáku: co vás čeká</span></a>
+      </div>
+    </div>
+    <div class="wrap" style="margin-top:56px">
+      <h2 class="center" style="font-size:1.5rem">Další články</h2>
+      <div class="grid g3" style="margin-top:24px">
+        <article class="post" data-cat="Praktické">
+          <a href="#co-sbalit" tabindex="-1" aria-hidden="true"><img src="src/0f45ec1f-7c8d-42bc-b82d-c76d93101043.webp" alt="" loading="lazy" style="object-position:center"></a>
+          <div class="body">
+            <span class="meta">Praktické</span>
+            <h3><a href="#co-sbalit">Co si sbalit na cesty obytným autem</a></h3>
+            <p class="muted">Kontrolní seznam, který vám ušetří nervy. Co vzít, co nechat doma a jak to chytře uložit.</p>
+            <a class="more" href="#co-sbalit">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Praktické">
+          <a href="#kde-prespat" tabindex="-1" aria-hidden="true"><img src="src/0f45ec1f-7c8d-42bc-b82d-c76d93101043.webp" alt="" loading="lazy" style="object-position:left center"></a>
+          <div class="body">
+            <span class="meta">Praktické</span>
+            <h3><a href="#kde-prespat">Kde přespat s obytňákem: kempy, areály i parkoviště</a></h3>
+            <p class="muted">Kemp, areál pro obytné vozy, nebo soukromý pozemek? Přehled možností a pravidel, která je dobré znát.</p>
+            <a class="more" href="#kde-prespat">Číst článek →</a>
+          </div>
+        </article>
+        <article class="post" data-cat="Pro začátečníky">
+          <a href="#prvni-pronajem" tabindex="-1" aria-hidden="true"><img src="src/IMG_9610.jpg" alt="" loading="lazy" style="object-position:center 40%"></a>
+          <div class="body">
+            <span class="meta">Pro začátečníky</span>
+            <h3><a href="#prvni-pronajem">První pronájem obytňáku: co vás čeká</a></h3>
+            <p class="muted">Jak si vybrat vůz, co si projít při převzetí a čeho se nemusíte bát. Průvodce pro úplné nováčky.</p>
+            <a class="more" href="#prvni-pronajem">Číst článek →</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+  </div>
+
+  <section class="section cta-band">
+    <div class="wrap">
+      <h2>Máte chuť vyrazit?</h2>
+      <p>Prohlédněte si volné termíny a rezervujte.</p>
+      <a class="btn light" href="rezervace.html">Rezervovat obytňák</a>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <!-- PATIČKA: stejný text je na každé stránce. Kontakty měňte na všech stránkách (hledejte telefon nebo e-mail). -->
+    <div class="wrap">
+      <div class="foot-grid">
+        <div>
+          <a class="logo footer-logo" href="index.html"><img src="src/logo.png" alt="Obytňák Vysočina" width="110" height="110"></a>
+          <p>Pronájem obytného vozu Forster A 699 HB. Vyrazte za dobrodružstvím bez starostí – vůz je připravený, pojištěný a čeká jen na vás.</p>
+          <div class="socials">
+            <a href="#" aria-label="Instagram" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10a4 4 0 014 4v10a4 4 0 01-4 4H7a4 4 0 01-4-4V7a4 4 0 014-4zM12 16a4 4 0 100-8 4 4 0 000 8zM17.5 6.5h.01"/></svg></a>
+            <a href="#" aria-label="Facebook" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 8h3V4h-3a4 4 0 00-4 4v3H7v4h3v6h4v-6h3l1-4h-4V8z"/></svg></a>
+          </div>
+        </div>
+        <div>
+          <h4>Menu</h4>
+          <ul>
+            <li><a href="obytne-auto.html">Obytné auto</a></li>
+            <li><a href="fotogalerie.html">Fotogalerie</a></li>
+            <li><a href="cenik.html">Ceník</a></li>
+            <li><a href="blog.html">Blog</a></li>
+            <li><a href="rezervace.html">Rezervace</a></li>
+            <li><a href="kontakt.html">Kontakt</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Užitečné</h4>
+          <ul>
+            <li><a href="cenik.html#podminky">Podmínky pronájmu</a></li>
+            <li><a href="rezervace.html">Volné termíny</a></li>
+            <li><a href="blog.html">Rady a tipy</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Kontakt</h4>
+          <ul>
+            <li><a href="tel:+420777123456">+420 777 123 456</a></li>
+            <li><a href="mailto:smidtomas@icloud.com">smidtomas@icloud.com</a></li>
+            <li>Nad Cihelnou 663, 582 91 Světlá nad Sázavou</li>
+            <li>Po–Ne 8:00–20:00 (po domluvě)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="copy">
+        <span>© <span id="year">2026</span> Obytňák Vysočina. Všechna práva vyhrazena.</span>
+        <span>Pronájem obytného vozu Forster A 699 HB</span>
+      </div>
+    </div>
+  </footer>
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rezervace – Obytňák Vysočina – Forster A 699 HB</title>
+  <meta name="description" content="Rezervace obytného vozu Forster A 699 HB – kalendář obsazenosti, kalkulačka ceny a poptávkový formulář.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="src/logo.png"><link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="rezervace">
+  <header class="site-header">
+    <div class="wrap">
+      <a class="logo" href="index.html" aria-label="Obytňák Vysočina – úvodní stránka">
+        <img src="src/logo.png" alt="Obytňák Vysočina" width="56" height="56">
+      </a>
+      <button class="burger" aria-label="Menu" aria-expanded="false" aria-controls="nav"><span></span></button>
+      <nav class="nav" id="nav">
+        <a href="obytne-auto.html">Obytné auto</a>
+        <a href="fotogalerie.html">Fotogalerie</a>
+        <a href="cenik.html">Ceník</a>
+        <a href="blog.html">Blog</a>
+        <a href="rezervace.html" class="cta active" aria-current="page">Rezervace</a>
+        <a href="kontakt.html">Kontakt</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero small" style="background-image:url('src/IMG_9574_jpg-2.jpg');background-position:center 60%">
+    <div class="wrap">
+      <span class="eyebrow" style="color:#7bd88f">Rezervace</span>
+      <h1>Rezervujte svůj termín</h1>
+      <p class="lead">Podívejte se do kalendáře, vyberte dny a odešlete poptávku.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="res-layout">
+
+        <!-- KALENDÁŘ -->
+        <div class="panel">
+          <h2 style="font-size:1.5rem">1. Kalendář obsazenosti</h2>
+          <p class="muted">Obsazené termíny jsou v kalendáři vyznačeny. Volné dny můžete rezervovat.</p>
+          <!-- Vložte ID Google Kalendáře do data-calendar-id (Nastavení kalendáře → Integrovat kalendář). Kalendář musí být veřejný. -->
+          <div id="calBox" data-calendar-id=""></div>
+          <div class="legend">
+            <span><i style="background:#4285f4"></i>Obsazeno</span>
+            <span><i style="background:#dcdcdc"></i>Volno</span>
+          </div>
+          <details class="price-data">
+            <summary>Sazby a údaje pro výpočet ceny</summary>
+            <!--
+              SAZBY PRO KALKULAČKU (upravujete přímo zde):
+              - Sloupec "Min. nocí" a "Cena / den" se čtou z textu buňky (stačí přepsat číslo).
+              - Atribut data-ranges = data sezóny ve tvaru MM-DD/MM-DD (např. 07-01/08-31, více období oddělte čárkou).
+                Řádek s data-ranges="default" platí pro všechny dny, které nespadají do žádné jiné sezóny.
+              - Stejné ceny jsou i na stránce cenik.html (tabulka Ceník). Při změně cen upravte OBĚ místa.
+            -->
+            <div class="table-wrap">
+              <table id="priceTable">
+                <thead><tr><th>Sezóna</th><th>Období</th><th>Min. nocí</th><th>Cena / den</th></tr></thead>
+                <tbody>
+                <tr data-ranges="07-01/08-31"><td>Hlavní sezóna</td><td>červenec – srpen</td><td>7</td><td>3 990 Kč</td></tr>
+                <tr data-ranges="06-01/06-30"><td>Červen</td><td>červen</td><td>4</td><td>3 790 Kč</td></tr>
+                <tr data-ranges="05-01/05-31, 09-01/09-30"><td>Květen a září</td><td>květen, září</td><td>4</td><td>3 490 Kč</td></tr>
+                <tr data-ranges="02-01/04-30, 10-01/10-31, 12-23/12-31"><td>Jaro, říjen a Vánoce</td><td>únor – duben, říjen, 23.–31. 12.</td><td>4</td><td>2 990 Kč</td></tr>
+                <tr data-ranges="default"><td>Zima</td><td>listopad, 1.–22. 12., leden</td><td>4</td><td>2 290 Kč</td></tr>
+                </tbody>
+                <tbody>
+                <tr data-from="11"><td colspan="3">Sleva od 11 nocí pronájmu</td><td>10 %</td></tr>
+                <tr data-from="21"><td colspan="3">Sleva od 21 nocí pronájmu</td><td>15 %</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="note">Vratná kauce: <b id="pdDeposit">25 000 Kč</b> · Kilometry v ceně: <b id="pdKm">250</b> km denně</p>
+          </details>
+        </div>
+
+        <!-- FORMULÁŘ -->
+        <div>
+          <div class="panel">
+            <h2 style="font-size:1.5rem">2. Vaše poptávka</h2>
+            <!--
+              NASTAVENÍ FORMULÁŘE (upravujete v atributech data-… níže):
+              data-owner-email  = e-mail, kam chodí poptávky
+              data-owner-phone  = telefon zobrazený při chybě odeslání
+              data-emailjs-*    = údaje z EmailJS pro automatické odeslání (postup: NAVOD-EMAIL.md).
+                                  Dokud jsou prázdné, otevře se po odeslání e-mailový program klienta.
+            -->
+            <form id="resForm" novalidate
+              data-brand="Obytňák Vysočina"
+              data-vehicle="Forster A 699 HB"
+              data-owner-email="smidtomas@icloud.com"
+              data-owner-phone="+420 777 123 456"
+              data-emailjs-public-key=""
+              data-emailjs-service=""
+              data-emailjs-owner-template=""
+              data-emailjs-customer-template="">
+              <div class="row2">
+                <div><label for="dateFrom">Převzetí</label><input type="date" id="dateFrom" name="dateFrom" required></div>
+                <div><label for="dateTo">Vrácení</label><input type="date" id="dateTo" name="dateTo" required></div>
+              </div>
+              <p class="err" id="dateErr" role="alert"></p>
+
+              <div>
+                <label for="guests">Počet osob</label>
+                <select id="guests" name="guests">
+                  <option>1</option><option selected>2</option><option>3</option>
+                  <option>4</option><option>5</option><option>6</option>
+                </select>
+              </div>
+
+              <div class="row2">
+                <div><label for="name">Jméno a příjmení</label><input id="name" name="name" autocomplete="name" required></div>
+                <div><label for="phone">Telefon</label><input id="phone" name="phone" type="tel" autocomplete="tel" required></div>
+              </div>
+              <div><label for="email">E-mail</label><input id="email" name="email" type="email" autocomplete="email" required></div>
+              <div><label for="note">Poznámka (nepovinné)</label><textarea id="note" name="note" placeholder="Kam plánujete vyrazit, dotazy…"></textarea></div>
+
+              <p class="err" id="formErr" role="alert"></p>
+              <div class="summary" id="summary" aria-live="polite"></div>
+              <button class="btn block" type="submit">Odeslat poptávku e-mailem</button>
+              <p class="note" style="margin:0">Poptávka je nezávazná. Rezervace je platná až po našem potvrzení, které pošleme nejpozději do 24 hodin.</p>
+              <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
+            </form>
+            <div id="sent" class="info-box" hidden>
+              Pokud se e-mail neotevřel, <a id="sentLink" href="#">klikněte sem</a> nebo nám napište na <a href="mailto:smidtomas@icloud.com">smidtomas@icloud.com</a>.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section alt">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Jak to funguje</span>
+        <h2>Co bude dál?</h2>
+      </div>
+      <div class="steps">
+        <div class="step"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 16V8a2 2 0 012-2h11a3 3 0 013 3v1h1.5A2.5 2.5 0 0122 12.5V16M2 16h2.5M9.5 16h5M19.5 16H22M7 18.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM17 18.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM6 10h6"/></svg></span><h3>Vyberete vůz</h3><p>Forster A 699 HB.</p></div>
+        <div class="step"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4"/></svg></span><h3>Zvolíte termín</h3><p>Podle kalendáře obsazenosti.</p></div>
+        <div class="step"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11a3.5 3.5 0 100-7 3.5 3.5 0 000 7zM2 20c0-3.5 3-6 7-6s7 2.5 7 6M17 4.5a3.5 3.5 0 010 6.5M18 14.5c2.5.6 4 2.6 4 5.5"/></svg></span><h3>Vyplníte údaje</h3><p>Jméno, telefon a e-mail.</p></div>
+        <div class="step"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18v12H3zM3 7l9 6 9-6"/></svg></span><h3>Odešlete poptávku</h3><p>Dorazí nám e-mailem.</p></div>
+        <div class="step"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><h3>Potvrdíme</h3><p>Zašleme zálohu a pokyny.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <!-- PATIČKA: stejný text je na každé stránce. Kontakty měňte na všech stránkách (hledejte telefon nebo e-mail). -->
+    <div class="wrap">
+      <div class="foot-grid">
+        <div>
+          <a class="logo footer-logo" href="index.html"><img src="src/logo.png" alt="Obytňák Vysočina" width="110" height="110"></a>
+          <p>Pronájem obytného vozu Forster A 699 HB. Vyrazte za dobrodružstvím bez starostí – vůz je připravený, pojištěný a čeká jen na vás.</p>
+          <div class="socials">
+            <a href="#" aria-label="Instagram" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10a4 4 0 014 4v10a4 4 0 01-4 4H7a4 4 0 01-4-4V7a4 4 0 014-4zM12 16a4 4 0 100-8 4 4 0 000 8zM17.5 6.5h.01"/></svg></a>
+            <a href="#" aria-label="Facebook" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 8h3V4h-3a4 4 0 00-4 4v3H7v4h3v6h4v-6h3l1-4h-4V8z"/></svg></a>
+          </div>
+        </div>
+        <div>
+          <h4>Menu</h4>
+          <ul>
+            <li><a href="obytne-auto.html">Obytné auto</a></li>
+            <li><a href="fotogalerie.html">Fotogalerie</a></li>
+            <li><a href="cenik.html">Ceník</a></li>
+            <li><a href="blog.html">Blog</a></li>
+            <li><a href="rezervace.html">Rezervace</a></li>
+            <li><a href="kontakt.html">Kontakt</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Užitečné</h4>
+          <ul>
+            <li><a href="cenik.html#podminky">Podmínky pronájmu</a></li>
+            <li><a href="rezervace.html">Volné termíny</a></li>
+            <li><a href="blog.html">Rady a tipy</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Kontakt</h4>
+          <ul>
+            <li><a href="tel:+420777123456">+420 777 123 456</a></li>
+            <li><a href="mailto:smidtomas@icloud.com">smidtomas@icloud.com</a></li>
+            <li>Nad Cihelnou 663, 582 91 Světlá nad Sázavou</li>
+            <li>Po–Ne 8:00–20:00 (po domluvě)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="copy">
+        <span>© <span id="year">2026</span> Obytňák Vysočina. Všechna práva vyhrazena.</span>
+        <span>Pronájem obytného vozu Forster A 699 HB</span>
+      </div>
+    </div>
+  </footer>
+  <script src="js/main.js"></script>
+</body>
+</html>

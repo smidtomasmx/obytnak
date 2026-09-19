@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Náhled na telefonu</title>
+  <!-- Pomocná stránka jen pro kontrolu vzhledu na telefonu. Na web ji odkazovat nemusíte, klidně ji smažte. -->
+  <style>
+    body { margin: 0; padding: 24px 16px; background: #dfe3dc; font-family: system-ui, sans-serif; }
+    h1 { text-align: center; font-size: 1.3rem; margin: 0 0 4px; }
+    p.hint { text-align: center; margin: 0 0 24px; color: #555; }
+    .row { display: flex; flex-wrap: wrap; gap: 28px; justify-content: center; }
+    .ph { width: 390px; max-width: 100%; }
+    .ph h2 { font-size: 1rem; text-align: center; margin: 0 0 8px; }
+    iframe { display: block; width: 100%; height: 780px; border: 10px solid #111; border-radius: 30px; background: #fff; }
+  </style>
+</head>
+<body>
+  <h1>Náhled na telefonu (šířka 390 px)</h1>
+  <p class="hint">V rámečcích se dá scrollovat, klikat na menu i odkazy.</p>
+  <div class="row">
+    <div class="ph"><h2>Úvod</h2><iframe src="index.html" title="Úvod"></iframe></div>
+    <div class="ph"><h2>Obytné auto</h2><iframe src="obytne-auto.html" title="Obytné auto"></iframe></div>
+    <div class="ph"><h2>Fotogalerie</h2><iframe src="fotogalerie.html" title="Fotogalerie"></iframe></div>
+    <div class="ph"><h2>Ceník</h2><iframe src="cenik.html" title="Ceník"></iframe></div>
+    <div class="ph"><h2>Rezervace</h2><iframe src="rezervace.html" title="Rezervace"></iframe></div>
+    <div class="ph"><h2>Kontakt</h2><iframe src="kontakt.html" title="Kontakt"></iframe></div>
+  </div>
+</body>
+</html>

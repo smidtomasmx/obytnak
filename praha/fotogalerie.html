@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fotogalerie – Obytňák Praha – Forster A 699 HB</title>
+  <meta name="description" content="Fotogalerie obytného vozu Forster A 699 HB – exteriér, interiér, kuchyň, koupelna a dispozice.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="src/logo.png"><link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="galerie">
+  <header class="site-header">
+    <div class="wrap">
+      <a class="logo" href="index.html" aria-label="Obytňák Praha – úvodní stránka">
+        <img src="src/logo.png" alt="Obytňák Praha" width="56" height="56">
+      </a>
+      <button class="burger" aria-label="Menu" aria-expanded="false" aria-controls="nav"><span></span></button>
+      <nav class="nav" id="nav">
+        <a href="obytne-auto.html">Obytné auto</a>
+        <a href="fotogalerie.html" class="active" aria-current="page">Fotogalerie</a>
+        <a href="cenik.html">Ceník</a>
+        <a href="blog.html">Blog</a>
+        <a href="rezervace.html" class="cta">Rezervace</a>
+        <a href="kontakt.html">Kontakt</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero small" style="background-image:url('src/IMG_9610.jpg')">
+    <div class="wrap">
+      <span class="eyebrow" style="color:#e0bd6a">Fotogalerie</span>
+      <h1>Podívejte se na náš obytňák</h1>
+      <p class="lead">Klikněte na fotku pro zvětšení, na telefonu listujte přejetím prstu.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="filters" role="group" aria-label="Filtr fotografií">
+        <button class="on" data-cat="all">Vše</button>
+        <button data-cat="ext">Exteriér</button>
+        <button data-cat="int">Interiér</button>
+        <button data-cat="plan">Dispozice</button>
+        <button data-cat="trip">Na cestách</button>
+      </div>
+
+      <div class="gallery">
+        <a href="src/IMG_9574_jpg-2.jpg" data-lb data-cat="ext" data-caption="Forster A 699 HB – pohled zepředu"><img src="src/IMG_9574_jpg-2.jpg" alt="Forster A 699 HB zepředu" loading="lazy"><span>Pohled zepředu</span></a>
+        <a href="src/IMG_9603.jpg" data-lb data-cat="int" data-caption="Manželská postel s panoramatickým střešním oknem"><img src="src/IMG_9603.jpg" alt="Ložnice" loading="lazy"><span>Ložnice</span></a>
+        <a href="src/0f45ec1f-7c8d-42bc-b82d-c76d93101043.webp" data-lb data-cat="ext" data-caption="Vůz s rozloženou markýzou"><img src="src/0f45ec1f-7c8d-42bc-b82d-c76d93101043.webp" alt="Vůz s markýzou" loading="lazy"><span>S markýzou</span></a>
+        <a href="src/IMG_9610.jpg" data-lb data-cat="int" data-caption="Jídelní kout s rozkládacím stolem"><img src="src/IMG_9610.jpg" alt="Jídelní kout" loading="lazy"><span>Jídelní kout</span></a>
+        <a href="src/Grossglockner-Hochalpenstrasse-35c513e7-828b-4444-861d-616a0269dcc5.webp" data-lb data-cat="trip" data-caption="Alpské serpentiny – Grossglockner Hochalpenstrasse"><img src="src/Grossglockner-Hochalpenstrasse-35c513e7-828b-4444-861d-616a0269dcc5.webp" alt="Alpské serpentiny" loading="lazy"><span>Alpy – Grossglockner</span></a>
+        <a href="src/IMG_9616.jpg" data-lb data-cat="int" data-caption="Alkovna nad kabinou se žebříkem"><img src="src/IMG_9616.jpg" alt="Alkovna" loading="lazy"><span>Alkovna</span></a>
+        <a href="src/fo_alkoven_a699eb-5-9.jpg" data-lb data-cat="int" data-caption="Kuchyň s vařičem, dřezem a lednicí"><img src="src/fo_alkoven_a699eb-5-9.jpg" alt="Kuchyň" loading="lazy"><span>Kuchyň</span></a>
+        <a href="src/IMG_9605.jpg" data-lb data-cat="int" data-caption="Koupelna se sprchou a WC"><img src="src/IMG_9605.jpg" alt="Koupelna" loading="lazy"><span>Koupelna</span></a>
+        <a href="src/T-637-HB1.jpg" data-lb data-cat="plan" data-caption="Půdorys vozu – přes den a v noci"><img src="src/T-637-HB1.jpg" alt="Půdorys vozu" loading="lazy"><span>Půdorys</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section cta-band">
+    <div class="wrap">
+      <h2>Chcete ho vidět naživo?</h2>
+      <p>Domluvte si prohlídku nebo rovnou rezervujte svůj termín.</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <a class="btn light" href="rezervace.html">Rezervovat</a>
+        <a class="btn outline-light" href="kontakt.html">Kontaktovat nás</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <!-- PATIČKA: stejný text je na každé stránce. Kontakty měňte na všech stránkách (hledejte telefon nebo e-mail). -->
+    <div class="wrap">
+      <div class="foot-grid">
+        <div>
+          <a class="logo footer-logo" href="index.html"><img src="src/logo.png" alt="Obytňák Praha" width="110" height="110"></a>
+          <p>Pronájem obytného vozu Forster A 699 HB. Vyrazte za dobrodružstvím bez starostí – vůz je připravený, pojištěný a čeká jen na vás.</p>
+          <div class="socials">
+            <a href="#" aria-label="Instagram" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10a4 4 0 014 4v10a4 4 0 01-4 4H7a4 4 0 01-4-4V7a4 4 0 014-4zM12 16a4 4 0 100-8 4 4 0 000 8zM17.5 6.5h.01"/></svg></a>
+            <a href="#" aria-label="Facebook" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 8h3V4h-3a4 4 0 00-4 4v3H7v4h3v6h4v-6h3l1-4h-4V8z"/></svg></a>
+          </div>
+        </div>
+        <div>
+          <h4>Menu</h4>
+          <ul>
+            <li><a href="obytne-auto.html">Obytné auto</a></li>
+            <li><a href="fotogalerie.html">Fotogalerie</a></li>
+            <li><a href="cenik.html">Ceník</a></li>
+            <li><a href="blog.html">Blog</a></li>
+            <li><a href="rezervace.html">Rezervace</a></li>
+            <li><a href="kontakt.html">Kontakt</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Užitečné</h4>
+          <ul>
+            <li><a href="cenik.html#podminky">Podmínky pronájmu</a></li>
+            <li><a href="rezervace.html">Volné termíny</a></li>
+            <li><a href="blog.html">Rady a tipy</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Kontakt</h4>
+          <ul>
+            <li><a href="tel:+420777123456">+420 777 123 456</a></li>
+            <li><a href="mailto:smidtomas@icloud.com">smidtomas@icloud.com</a></li>
+            <li>Ukázková 123, 110 00 Praha</li>
+            <li>Po–Ne 8:00–20:00 (po domluvě)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="copy">
+        <span>© <span id="year">2026</span> Obytňák Praha. Všechna práva vyhrazena.</span>
+        <span>Pronájem obytného vozu Forster A 699 HB</span>
+      </div>
+    </div>
+  </footer>
+  <script src="js/main.js"></script>
+</body>
+</html>
