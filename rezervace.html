@@ -85,20 +85,17 @@
             <h2 style="font-size:1.5rem">2. Vaše poptávka</h2>
             <!--
               NASTAVENÍ FORMULÁŘE (upravujete v atributech data-… níže):
-              data-owner-email  = e-mail, kam chodí poptávky
-              data-owner-phone  = telefon zobrazený při chybě odeslání
-              data-emailjs-*    = údaje z EmailJS pro automatické odeslání (postup: NAVOD-EMAIL.md).
-                                  Dokud jsou prázdné, otevře se po odeslání e-mailový program klienta.
+              data-owner-email  = e-mail, kam se poptávka odešle (odesílá se sama přes službu FormSubmit)
+              data-owner-phone  = telefon zobrazený při chybě odeslání a v potvrzení pro zákazníka
+              data-autoresponse = text automatického potvrzení, které dostane zákazník
+              Při úplně první odeslané poptávce přijde na data-owner-email aktivační e-mail od FormSubmit – potvrďte ho (postup: NAVOD-EMAIL.md).
             -->
             <form id="resForm" novalidate
               data-brand="Obytňák Vysočina"
               data-vehicle="Forster A 699 HB"
-              data-owner-email="smidtomas@icloud.com"
+              data-owner-email="obytnakvysocina@icloud.com"
               data-owner-phone="+420 777 123 456"
-              data-emailjs-public-key=""
-              data-emailjs-service=""
-              data-emailjs-owner-template=""
-              data-emailjs-customer-template="">
+              data-autoresponse="Dobrý den, děkujeme za vaši poptávku, dorazila k nám v pořádku. Nejpozději do 24 hodin vám ji potvrdíme. Kdyby cokoli, ozvěte se na telefon +420 777 123 456. S pozdravem Obytňák Vysočina">
               <div class="row2">
                 <div><label for="dateFrom">Převzetí</label><input type="date" id="dateFrom" name="dateFrom" required></div>
                 <div><label for="dateTo">Vrácení</label><input type="date" id="dateTo" name="dateTo" required></div>
@@ -126,9 +123,7 @@
               <p class="note" style="margin:0">Poptávka je nezávazná. Rezervace je platná až po našem potvrzení, které pošleme nejpozději do 24 hodin.</p>
               <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
             </form>
-            <div id="sent" class="info-box" hidden>
-              Pokud se e-mail neotevřel, <a id="sentLink" href="#">klikněte sem</a> nebo nám napište na <a href="mailto:smidtomas@icloud.com">smidtomas@icloud.com</a>.
-            </div>
+            <div id="sent" class="info-box" hidden></div>
           </div>
         </div>
       </div>
@@ -186,7 +181,7 @@
           <h4>Kontakt</h4>
           <ul>
             <li><a href="tel:+420777123456">+420 777 123 456</a></li>
-            <li><a href="mailto:smidtomas@icloud.com">smidtomas@icloud.com</a></li>
+            <li><a href="mailto:obytnakvysocina@icloud.com">obytnakvysocina@icloud.com</a></li>
             <li>Nad Cihelnou 663, 582 91 Světlá nad Sázavou</li>
             <li>Po–Ne 8:00–20:00 (po domluvě)</li>
           </ul>

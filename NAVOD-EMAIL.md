@@ -1,82 +1,42 @@
-# Automatické odesílání poptávek (EmailJS)
+# Automatické odesílání poptávek e-mailem
 
-Po nastavení se po kliknutí na „Odeslat poptávku“ **hned odešle e-mail vám** a **klientovi přijde potvrzení**
-(„poptávka byla doručena, do 24 hodin ji potvrdíme“). Nic se neotevírá, klient nic dalšího neklikne.
+Po kliknutí na „Odeslat poptávku“ na stránce Rezervace se **e-mail odešle sám** na adresu majitele
+a **zákazník dostane automatické potvrzení** (poptávka byla doručena, do 24 hodin bude potvrzena).
+Nic se neotevírá a zákazník nemusí nic dalšího klikat.
 
-Služba je zdarma (200 e-mailů měsíčně). Nastavení trvá asi 10 minut.
+Odesílání zajišťuje bezplatná služba **FormSubmit** (formsubmit.co). Nepotřebujete žádný účet ani registraci.
 
-## 1. Účet a e-mailová služba
-1. Zaregistrujte se na https://www.emailjs.com
-2. **Email Services → Add New Service** → vyberte Gmail (nejjednodušší) nebo Outlook a propojte svůj e-mail.
-   (iCloud jde přes „Custom SMTP“ s heslem pro aplikace, je to složitější.)
-3. Zkopírujte **Service ID** (např. `service_abc123`).
+## Kam poptávky chodí
+V souboru `rezervace.html` u formuláře (`<form id="resForm" …>`):
 
-## 2. Šablona pro vás (majitele)
-**Email Templates → Create New Template**
-- **To Email:** `{{to_email}}`
-- **Reply To:** `{{reply_to}}`
-- **Subject:** `Nová poptávka: {{date_from}} – {{date_to}} ({{customer_name}})`
-- **Content:**
+| Atribut | Co znamená |
+|---|---|
+| `data-owner-email` | e-mail, kam se poptávka odešle (Vysočina: obytnakvysocina@icloud.com) |
+| `data-owner-phone` | telefon, který se ukáže při chybě odeslání a v potvrzení pro zákazníka |
+| `data-autoresponse` | text automatického potvrzení, které dostane zákazník |
 
-```
-Nová poptávka z webu {{brand}}
+Totéž je v `praha/rezervace.html` (pražská verze má vlastní e-mail).
 
-Termín: {{date_from}} – {{date_to}} ({{nights}} nocí)
-Počet osob: {{guests}}
-Orientační cena: {{price}}
+## Jednorázová aktivace (nutné, bez ní e-maily nechodí)
+FormSubmit z bezpečnostních důvodů vyžaduje, aby majitel adresu jednou potvrdil:
 
-Jméno: {{customer_name}}
-Telefon: {{customer_phone}}
-E-mail: {{customer_email}}
-Poznámka: {{note}}
+1. Web musí být zveřejněný na internetu (GitHub Pages). Ze souboru na disku to nemusí fungovat.
+2. Otevřete zveřejněnou stránku Rezervace a odešlete **jednu zkušební poptávku** (klidně se svým jménem).
+3. Do schránky `data-owner-email` přijde e-mail od **FormSubmit** s tlačítkem **Activate Form**. Klikněte na něj.
+   (Když e-mail nevidíte, zkontrolujte složku Spam / Nevyžádaná pošta.)
+4. Od té chvíle chodí všechny poptávky automaticky. Zkušební poptávku, která aktivaci spustila, FormSubmit doručí až po potvrzení, případně ji pošlete znovu.
 
-Přidat do Google Kalendáře:
-{{calendar_link}}
-```
-Uložte a zkopírujte **Template ID** → to je `ownerTemplate`.
+Pokud později změníte `data-owner-email` na jinou adresu, je potřeba aktivaci zopakovat.
 
-## 3. Šablona pro klienta (potvrzení)
-Druhá šablona:
-- **To Email:** `{{to_email}}`
-- **Reply To:** `{{reply_to}}`
-- **Subject:** `Vaše poptávka byla doručena – {{brand}}`
-- **Content:**
-
-```
-Dobrý den, {{customer_name}},
-
-děkujeme za vaši poptávku, dorazila k nám v pořádku.
-Nejpozději do 24 hodin vám ji potvrdíme.
-
-Shrnutí:
-Termín: {{date_from}} – {{date_to}} ({{nights}} nocí)
-Počet osob: {{guests}}
-Orientační cena: {{price}}
-
-Kdyby cokoli, ozvěte se: {{owner_phone}}, {{owner_email}}
-
-S pozdravem
-{{brand}}
-```
-Uložte a zkopírujte **Template ID** → to je `customerTemplate`.
-
-## 4. Vložení do webu
-V EmailJS otevřete **Account → General** a zkopírujte **Public Key**.
-V souboru `rezervace.html` vyplňte atributy u `<form id="resForm" …>`:
-
-```html
-data-emailjs-public-key="…"
-data-emailjs-service="service_…"
-data-emailjs-owner-template="template_…"
-data-emailjs-customer-template="template_…"
-```
-(Totéž udělejte v `praha/rezervace.html`, pokud chcete e-maily i z pražské verze.)
-## 5. Doporučené zabezpečení
-Public Key je na webu vidět (to je u EmailJS normální). Aby ho nikdo nezneužil,
-zapněte v EmailJS v **Account → Security** omezení na vaši doménu (až budete mít web na internetu).
+## Co dostanete v e-mailu
+Tabulka s termínem převzetí a vrácení, počtem nocí a osob, orientační cenou, jménem, telefonem, e-mailem,
+poznámkou a odkazem „Přidat do Google Kalendáře“ (jedním klikem si termín vložíte do kalendáře).
+Odpověď zákazníkovi napíšete rovnou tlačítkem Odpovědět, protože jeho e-mail je nastavený jako adresa pro odpověď.
 
 ## Poznámky
-- Testujte, až bude web na internetu (nebo aspoň přes místní server). Při otevření ze souboru na disku
-  může prohlížeč požadavky blokovat.
-- Dokud atributy `data-emailjs-…` nevyplníte, používá formulář záložní řešení (otevře e-mailový program klienta).
-- Kontaktní formulář na stránce Kontakt zatím používá stále původní způsob (otevření e-mailu).
+- Údaje zákazníka (jméno, telefon, e-mail) putují přes server služby FormSubmit. Doporučuji je zmínit
+  ve zpracování osobních údajů, až budete web zveřejňovat.
+- Kontaktní formulář na stránce Kontakt zatím používá původní způsob (otevře se e-mailový program zákazníka).
+- Kdyby se odeslání nepovedlo (např. zákazník je offline), zobrazí se hláška s vaším telefonem a e-mailem.
+- Pokud chcete vlastní vzhled e-mailů nebo víc kontroly, dá se místo FormSubmit použít služba EmailJS
+  (vyžaduje účet a šablony). Napište a přepnu to.

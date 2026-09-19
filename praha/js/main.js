@@ -167,23 +167,24 @@ function calcPrice(P, { from, to }) {
   return { nights, lines, total: rent - discount };
 }
 
-/* ---------- Odeslání e-mailu přes EmailJS (bez SDK) ---------- */
-function sendEmailJS(c, templateId, templateParams) {
-  return fetch("https://api.emailjs.com/api/v1.0/email/send", {
+/* ---------- Odeslání poptávky e-mailem přes FormSubmit (bez registrace) ---------- */
+function sendInquiry(ownerEmail, fields) {
+  return fetch("https://formsubmit.co/ajax/" + ownerEmail, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ service_id: c.serviceId, template_id: templateId, user_id: c.publicKey, template_params: templateParams }),
-  }).then(res => { if (!res.ok) throw new Error("EmailJS " + res.status); });
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify(fields),
+  }).then(res => res.json().catch(() => ({})).then(data => {
+    if (!res.ok || data.success === "false" || data.success === false) throw new Error((data && data.message) || "Odeslání se nezdařilo");
+    return data;
+  }));
 }
-
+const escHtml = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 /* ---------- Rezervace ---------- */
 function initReservation() {
   const form = $("#resForm");
   if (!form) return;
   const d = form.dataset;
   const OWNER = { brand: d.brand, vehicle: d.vehicle, email: d.ownerEmail, phone: d.ownerPhone };
-  const EJS = { publicKey: d.emailjsPublicKey, serviceId: d.emailjsService, ownerTemplate: d.emailjsOwnerTemplate, customerTemplate: d.emailjsCustomerTemplate };
-  const emailjsReady = !!(EJS.publicKey && EJS.serviceId && EJS.ownerTemplate && EJS.customerTemplate);
   const P = readPrices();
 
   // Google Kalendář (ID je v atributu data-calendar-id)
@@ -258,65 +259,44 @@ function initReservation() {
       + "&text=" + encodeURIComponent("Rezervace: " + f.name.value.trim())
       + "&dates=" + iso(s.from).replace(/-/g, "") + "/" + iso(s.to).replace(/-/g, "")
       + "&details=" + encodeURIComponent(`Tel: ${f.phone.value.trim()}\nE-mail: ${f.email.value.trim()}\nOsob: ${s.guests}`);
-    const body = [
-      "Dobrý den,",
-      "",
-      `rád(a) bych rezervoval(a) obytný vůz ${OWNER.vehicle}.`,
-      "",
-      `Převzetí: ${fmtDate(s.from)}`,
-      `Vrácení: ${fmtDate(s.to)} (${r.nights} nocí)`,
-      `Počet osob: ${s.guests}`,
-      `Orientační cena: ${kc(r.total)}`,
-      "",
-      `Jméno: ${f.name.value.trim()}`,
-      `Telefon: ${f.phone.value.trim()}`,
-      `E-mail: ${f.email.value.trim()}`,
-      f.note.value.trim() ? `\nPoznámka: ${f.note.value.trim()}` : "",
-      "",
-      "Přidat do Google Kalendáře (pro majitele):",
-      calUrl,
-    ].join("\n");
-    const subject = `Poptávka: ${fmtDate(s.from)} – ${fmtDate(s.to)}`;
+    const subject = `Poptávka: ${fmtDate(s.from)} – ${fmtDate(s.to)} (${f.name.value.trim()})`;
+    const custEmail = f.email.value.trim();
 
-    // A) EmailJS je nastavený → e-mail se odešle sám, klient dostane potvrzení
-    if (emailjsReady) {
-      const params = {
-        brand: OWNER.brand, subject,
-        customer_name: f.name.value.trim(), customer_email: f.email.value.trim(), customer_phone: f.phone.value.trim(),
-        date_from: fmtDate(s.from), date_to: fmtDate(s.to), nights: r.nights, guests: s.guests,
-        price: kc(r.total), note: f.note.value.trim() || "–", calendar_link: calUrl,
-        owner_phone: OWNER.phone, owner_email: OWNER.email,
-      };
-      const btn = $("button[type=submit]", form), btnText = btn.textContent;
-      btn.disabled = true; btn.textContent = "Odesílám…";
-      const done = $("#sent");
-      sendEmailJS(EJS, EJS.ownerTemplate, { ...params, to_email: OWNER.email, reply_to: params.customer_email })
-        .then(() => sendEmailJS(EJS, EJS.customerTemplate, { ...params, to_email: params.customer_email, reply_to: OWNER.email })
-          .then(() => true, () => false))
-        .then(customerMailOk => {
-          done.className = "info-box";
-          done.innerHTML = `<strong>Děkujeme, poptávka byla odeslána.</strong><br>` + (customerMailOk
-            ? `Potvrzení jsme poslali na ${params.customer_email}. Ozveme se vám nejpozději do 24 hodin.`
-            : `Potvrzovací e-mail se nám nepodařilo odeslat, ale poptávku jsme přijali a ozveme se vám nejpozději do 24 hodin.`);
-          done.hidden = false;
-          form.hidden = true;
-          done.scrollIntoView({ behavior: "smooth", block: "center" });
-        })
-        .catch(() => {
-          btn.disabled = false; btn.textContent = btnText;
-          $("#formErr").textContent = `Poptávku se nepodařilo odeslat. Zkuste to prosím znovu, nebo nám zavolejte na ${OWNER.phone}.`;
-        });
-      return;
-    }
+    // Poptávka se odešle sama na e-mail majitele, zákazník dostane automatické potvrzení
+    const fields = {
+      _subject: subject,
+      _template: "table",
+      _captcha: "false",
+      name: f.name.value.trim(),
+      email: custEmail,
+      "Telefon": f.phone.value.trim(),
+      "Převzetí": fmtDate(s.from),
+      "Vrácení": fmtDate(s.to),
+      "Počet nocí": r.nights,
+      "Počet osob": s.guests,
+      "Orientační cena": kc(r.total),
+      "Poznámka": f.note.value.trim() || "–",
+      "Přidat do Google Kalendáře": calUrl,
+    };
+    if (d.autoresponse) fields._autoresponse = d.autoresponse;
 
-    // B) Záložní řešení (dokud EmailJS není nastavený): otevře se e-mailový program klienta
-    const href = `mailto:${OWNER.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    $("#sent").hidden = false;
-    $("#sentLink").href = href;
-    window.location.href = href;
+    const btn = $("button[type=submit]", form), btnText = btn.textContent;
+    btn.disabled = true; btn.textContent = "Odesílám…";
+    sendInquiry(OWNER.email, fields)
+      .then(() => {
+        const done = $("#sent");
+        done.className = "info-box";
+        done.innerHTML = `<strong>Děkujeme, poptávka byla odeslána.</strong><br>Potvrzení jsme poslali na ${escHtml(custEmail)}. Ozveme se vám nejpozději do 24 hodin.`;
+        done.hidden = false;
+        form.hidden = true;
+        done.scrollIntoView({ behavior: "smooth", block: "center" });
+      })
+      .catch(() => {
+        btn.disabled = false; btn.textContent = btnText;
+        $("#formErr").textContent = `Poptávku se nepodařilo odeslat. Zkuste to prosím znovu, nebo nám zavolejte na ${OWNER.phone}, případně napište na ${OWNER.email}.`;
+      });
   });
 }
-
 /* ---------- Kontaktní formulář ---------- */
 function initContactForm() {
   const form = $("#contactForm");
