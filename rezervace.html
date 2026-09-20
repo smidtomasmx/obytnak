@@ -87,7 +87,10 @@
               NASTAVENÍ FORMULÁŘE (upravujete v atributech data-… níže):
               data-owner-email  = e-mail, kam se poptávka odešle (odesílá se sama přes službu FormSubmit)
               data-owner-phone  = telefon zobrazený při chybě odeslání a v potvrzení pro zákazníka
-              data-autoresponse = text automatického potvrzení, které dostane zákazník
+              data-api-url      = adresa rezervačního backendu (Google Apps Script Web App, postup: NAVOD-REZERVACE.md).
+                                  Je-li vyplněná, kontroluje se obsazenost a poptávky chodí přes backend (FormSubmit se nepoužije).
+                                  Je-li prázdná, formulář se odesílá záložním způsobem přes FormSubmit.
+              data-autoresponse = text automatického potvrzení pro zákazníka (jen záložní režim FormSubmit)
               Při úplně první odeslané poptávce přijde na data-owner-email aktivační e-mail od FormSubmit – potvrďte ho (postup: NAVOD-EMAIL.md).
             -->
             <form id="resForm" novalidate
@@ -95,6 +98,7 @@
               data-vehicle="Forster A 699 HB"
               data-owner-email="obytnakvysocina@icloud.com"
               data-owner-phone="+420 777 123 456"
+              data-api-url=""
               data-autoresponse="Dobrý den, děkujeme za vaši poptávku, dorazila k nám v pořádku. Nejpozději do 24 hodin vám ji potvrdíme. Kdyby cokoli, ozvěte se na telefon +420 777 123 456. S pozdravem Obytňák Vysočina">
               <div class="row2">
                 <div><label for="dateFrom">Převzetí</label><input type="date" id="dateFrom" name="dateFrom" required></div>

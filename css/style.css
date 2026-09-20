@@ -372,3 +372,21 @@ details.price-data summary { cursor: pointer; font-weight: 600; color: var(--gre
 details.price-data .table-wrap { margin-top: 12px; box-shadow: none; }
 details.price-data table { min-width: 420px; font-size: .85rem; }
 details.price-data th, details.price-data td { padding: 8px 10px; }
+
+/* ---- Rezervace: přehled obsazenosti (jen čtení, VOLNO / OBSAZENO) ---- */
+.avail { user-select: none; }
+.av-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.av-title { text-transform: capitalize; font-size: 1.05rem; }
+.av-nav { width: 40px; height: 40px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: #fff; font-size: 1.3rem; line-height: 1; cursor: pointer; color: var(--ink); }
+.av-nav:hover:not(:disabled) { border-color: var(--green); color: var(--green-dark); }
+.av-nav:disabled { opacity: .35; cursor: default; }
+.av-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.av-dow { text-align: center; font-size: .78rem; font-weight: 600; color: var(--ink-soft); padding: 4px 0; }
+.av-day { aspect-ratio: 1; display: grid; place-items: center; border-radius: 8px; font-size: .9rem; }
+.av-free { background: #f3f4f1; color: var(--ink); }
+.av-busy { background: #4285f4; color: #fff; font-weight: 600; }
+.av-past { color: #b9bdb5; }
+.av-sel { background: var(--green); color: #fff; font-weight: 600; }
+.av-empty { visibility: hidden; }
+.av-note { min-height: 1.3em; margin: 10px 0 0; font-size: .88rem; color: var(--ink-soft); }
+@media (max-width: 480px) { .av-grid { gap: 3px; } .av-day { font-size: .82rem; border-radius: 6px; } }

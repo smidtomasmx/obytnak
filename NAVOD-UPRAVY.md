@@ -41,7 +41,8 @@ a změnou `id` (adresa článku, malá písmena a pomlčky) a odkazů `href="#�
 
 ## Google Kalendář a e-maily
 - ID kalendáře: `rezervace.html` → atribut `data-calendar-id` u `<div id="calBox">`.
-- Automatické e-maily: e-mail majitele a text potvrzení pro zákazníka jsou v atributech `data-owner-email` a `data-autoresponse` u `<form id="resForm">`. Jednorázová aktivace je popsaná v `NAVOD-EMAIL.md`.
+- **Rezervace s kontrolou obsazenosti a potvrzováním** (Google Kalendář): adresa Web Appu je v `rezervace.html` v atributu `data-api-url`, e-mail správce a další nastavení jsou v `backend/google-apps-script/Code.gs` (`CONFIG`). Postup: `NAVOD-REZERVACE.md`.
+- Záložní odesílání (FormSubmit, když je `data-api-url` prázdné): e-mail majitele a text potvrzení pro zákazníka jsou v atributech `data-owner-email` a `data-autoresponse` u `<form id="resForm">`. Jednorázová aktivace je popsaná v `NAVOD-EMAIL.md`.
 
 ## Co je v JavaScriptu
 `js/main.js` obsahuje jen chování (menu, galerie, kalkulačka, odesílání). Žádné texty ani ceny v něm nejsou

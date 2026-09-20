@@ -179,6 +179,78 @@ function sendInquiry(ownerEmail, fields) {
   }));
 }
 const escHtml = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+/* ---------- Rezervační systém: komunikace s backendem (Google Apps Script Web App) ---------- */
+// Obsazená období z backendu jsou [{start, end}]. Konec = den vrácení (tento den už obsazený není),
+// proto lze převzít vůz v den, kdy jej jiný zákazník vrací. Překryv: nový_start < konec A nový_konec > start.
+const overlapsBusy = (from, to, busy) => busy.some(b => from < b.end && to > b.start);
+const isBusyNight = (day, busy) => busy.some(b => day >= b.start && day < b.end);
+const nextBusyStart = (from, busy) => busy.map(b => b.start).filter(x => x > from).sort()[0] || "";
+
+function apiRequest(url, payload) {
+  const ctrl = "AbortController" in window ? new AbortController() : null;
+  const timer = ctrl ? setTimeout(() => ctrl.abort(), 30000) : null;
+  const opts = payload
+    ? { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) }
+    : { method: "GET" };
+  if (ctrl) opts.signal = ctrl.signal;
+  return fetch(url, opts)
+    .then(res => { if (!res.ok) throw new Error("HTTP " + res.status); return res.json(); })
+    .finally(() => { if (timer) clearTimeout(timer); });
+}
+
+/* Přehled obsazenosti (jen VOLNO / OBSAZENO) v panelu #calBox. Žádné údaje o zákaznících. */
+function initAvailability(box, api, onData) {
+  const MONTHS = ["leden", "únor", "březen", "duben", "květen", "červen", "červenec", "srpen", "září", "říjen", "listopad", "prosinec"];
+  const now = new Date(); now.setHours(0, 0, 0, 0);
+  const first = new Date(now.getFullYear(), now.getMonth(), 1);
+  const lastView = new Date(first.getFullYear(), first.getMonth() + 24, 1);
+  const todayIso = iso(now);
+  let view = new Date(first), busy = [], state = "loading", sel = null;
+
+  function render() {
+    const y = view.getFullYear(), m = view.getMonth();
+    const offset = (new Date(y, m, 1).getDay() + 6) % 7;            // týden začíná pondělím
+    const days = new Date(y, m + 1, 0).getDate();
+    let cells = "";
+    for (let i = 0; i < offset; i++) cells += '<span class="av-day av-empty"></span>';
+    for (let d = 1; d <= days; d++) {
+      const day = `${y}-${pad(m + 1)}-${pad(d)}`;
+      let cls = "av-free", label = "volno";
+      if (day < todayIso) { cls = "av-past"; label = "minulost"; }
+      else if (isBusyNight(day, busy)) { cls = "av-busy"; label = "obsazeno"; }
+      else if (sel && day >= sel.from && day < sel.to) cls += " av-sel";
+      cells += `<span class="av-day ${cls}" role="img" aria-label="${d}. ${m + 1}. ${y} – ${label}">${d}</span>`;
+    }
+    const msg = state === "loading" ? "Načítám obsazenost…"
+      : state === "error" ? "Obsazenost se nepodařilo načíst. Volnost termínu ověříme po odeslání poptávky." : "";
+    box.innerHTML = `<div class="avail">
+      <div class="av-head">
+        <button type="button" class="av-nav" data-d="-1" aria-label="Předchozí měsíc"${view <= first ? " disabled" : ""}>‹</button>
+        <strong class="av-title">${MONTHS[m]} ${y}</strong>
+        <button type="button" class="av-nav" data-d="1" aria-label="Další měsíc"${view >= lastView ? " disabled" : ""}>›</button>
+      </div>
+      <div class="av-grid">${["Po", "Út", "St", "Čt", "Pá", "So", "Ne"].map(x => `<span class="av-dow">${x}</span>`).join("")}${cells}</div>
+      <p class="av-note" aria-live="polite">${msg}</p></div>`;
+  }
+  box.addEventListener("click", e => {
+    const b = e.target.closest(".av-nav");
+    if (!b || b.disabled) return;
+    view = new Date(view.getFullYear(), view.getMonth() + Number(b.dataset.d), 1);
+    render();
+  });
+  function load() {
+    state = "loading"; render();
+    return apiRequest(`${api}?action=busy&from=${iso(now)}&to=${iso(addDays(now, 800))}`)
+      .then(r => {
+        if (!r || !r.ok || !Array.isArray(r.busy)) throw new Error("Neplatná odpověď");
+        busy = r.busy; state = "ok"; render(); onData(busy);
+      })
+      .catch(() => { state = "error"; render(); onData([]); });
+  }
+  load();
+  return { reload: load, select(from, to) { sel = from && to ? { from, to } : null; render(); } };
+}
+
 /* ---------- Rezervace ---------- */
 function initReservation() {
   const form = $("#resForm");
@@ -187,10 +259,21 @@ function initReservation() {
   const OWNER = { brand: d.brand, vehicle: d.vehicle, email: d.ownerEmail, phone: d.ownerPhone };
   const P = readPrices();
 
+  // Adresa Google Apps Script Web App (data-api-url). Je-li vyplněná, používá se nový rezervační systém
+  // s kontrolou obsazenosti a potvrzováním. Prázdná = záložní režim (odeslání přes FormSubmit jako dřív).
+  const API = (d.apiUrl || "").trim();
+  let BUSY = [];                                  // obsazená období načtená z backendu
+  let availability = null;
+  let sending = false;                            // právě probíhá odeslání (ochrana proti dvojkliku)
+  const openedAt = Date.now();                    // čas otevření formuláře (backend odmítne nereálně rychlé odeslání)
+  const requestId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(36).slice(2);
+
   // Google Kalendář (ID je v atributu data-calendar-id)
   const calBox = $("#calBox");
   const calId = (calBox.dataset.calendarId || "").trim();
-  if (calId) {
+  if (API) {
+    availability = initAvailability(calBox, API, ranges => { BUSY = ranges; update(); });
+  } else if (calId) {
     calBox.innerHTML = `<iframe class="cal-frame" title="Kalendář obsazenosti" loading="lazy"
       src="https://calendar.google.com/calendar/embed?src=${encodeURIComponent(calId)}&ctz=Europe%2FPrague&hl=cs&mode=MONTH&showTitle=0&showPrint=0&showTabs=0&showCalendars=0&showTz=0&wkst=2"></iframe>`;
   } else {
@@ -213,6 +296,7 @@ function initReservation() {
     if (!s.from || !s.to) return "Vyberte prosím datum převzetí a vrácení.";
     if (s.from < today) return "Datum převzetí nemůže být v minulosti.";
     if (s.to <= s.from) return "Vrácení musí být po převzetí.";
+    if (API && overlapsBusy(iso(s.from), iso(s.to), BUSY)) return "Tento termín je obsazený.";
     const n = Math.round((s.to - s.from) / 86400000);
     const min = P ? minNightsFor(P, s.from) : 1;
     if (n < min) return `Minimální délka pronájmu pro tento termín je ${min} ${nightsWord(min)}.`;
@@ -223,8 +307,14 @@ function initReservation() {
   const update = () => {
     const s = state();
     if (P && s.from && (!s.to || s.to <= s.from)) f.dateTo.min = iso(addDays(s.from, minNightsFor(P, s.from)));
+    if (API) {
+      // vrácení nelze vybrat za nejbližší obsazený termín (v den začátku cizí rezervace vrátit lze)
+      f.dateTo.max = s.from && !isBusyNight(iso(s.from), BUSY) ? nextBusyStart(iso(s.from), BUSY) : "";
+      if (availability) availability.select(s.from ? iso(s.from) : "", s.from && s.to && s.to > s.from ? iso(s.to) : "");
+    }
     const err = s.from && s.to ? validate(s) : "";
-    errBox.textContent = err;
+    if (API && s.from && !s.to && isBusyNight(iso(s.from), BUSY)) errBox.textContent = "Tento termín je obsazený.";
+    else errBox.textContent = err;
     if (!P || !s.from || !s.to || err) {
       sumBox.innerHTML = `<h3>Orientační cena</h3><p style="margin:0;opacity:.8">Vyberte termín a uvidíte cenu pronájmu.</p>`;
       return;
@@ -252,9 +342,58 @@ function initReservation() {
       $("#formErr").textContent = "Zadejte prosím platný e-mail.";
       return;
     }
+    const phoneDigits = f.phone.value.replace(/\D/g, "");
+    if (!/^\+?[0-9 ()\-]{9,25}$/.test(f.phone.value.trim()) || phoneDigits.length < 9 || phoneDigits.length > 15) {
+      $("#formErr").textContent = "Zadejte prosím platný telefon.";
+      return;
+    }
     $("#formErr").textContent = "";
     if (f.website && f.website.value) return; // past na roboty (skryté pole)
     const r = P ? calcPrice(P, s) : { nights: Math.round((s.to - s.from) / 86400000), total: 0 };
+
+    // ---- NOVÝ SYSTÉM: poptávku přijme backend (kontrola kalendáře, tabulka, e-mail správci) ----
+    if (API) {
+      if (sending) return;                                           // ochrana proti dvojímu kliknutí
+      const custEmail = f.email.value.trim();
+      const sig = [custEmail.toLowerCase(), iso(s.from), iso(s.to)].join("|");
+      const done = $("#sent"), btn = $("button[type=submit]", form), btnText = btn.textContent;
+      const showSent = () => {
+        done.className = "info-box";
+        done.innerHTML = "<strong>Děkujeme za Vaši poptávku.</strong> Termín nyní prověříme a ozveme se Vám.";
+        done.hidden = false; form.hidden = true;
+        done.scrollIntoView({ behavior: "smooth", block: "center" });
+      };
+      try {                                                          // stejnou poptávku nelze odeslat znovu (např. po obnovení stránky)
+        const last = JSON.parse(sessionStorage.getItem("resSent") || "null");
+        if (last && last.sig === sig && Date.now() - last.t < 600000) { showSent(); return; }
+      } catch (e) { /* úložiště nemusí být dostupné */ }
+      sending = true; btn.disabled = true; btn.textContent = "Odesílám…";
+      const fail = msg => { $("#formErr").textContent = msg; };
+      apiRequest(API, {
+        action: "inquiry", requestId, elapsed: Date.now() - openedAt, website: f.website ? f.website.value : "",
+        name: f.name.value.trim(), phone: f.phone.value.trim(), email: custEmail, guests: s.guests,
+        from: iso(s.from), to: iso(s.to), note: f.note.value.trim(), estimate: kc(r.total),
+      }).then(res => {
+        if (res && res.ok) {
+          try { sessionStorage.setItem("resSent", JSON.stringify({ sig, t: Date.now() })); } catch (e) { /* nevadí */ }
+          showSent();
+        } else if (res && res.code === "BUSY") {
+          fail("Tento termín již není k dispozici. Vyberte prosím jiný termín.");
+          if (availability) availability.reload();
+        } else if (res && res.code === "INVALID") {
+          fail(Object.values(res.fields || {})[0] || res.message || "Zkontrolujte prosím údaje ve formuláři.");
+        } else if (res && res.code === "RATE_LIMIT") {
+          fail(res.message);
+        } else {
+          throw new Error((res && res.message) || "Chyba odeslání");
+        }
+      }).catch(() => {
+        fail(`Rezervaci se nepodařilo odeslat. Zkuste to prosím znovu nebo nás kontaktujte telefonicky. Tel.: ${OWNER.phone}.`);
+      }).finally(() => {
+        sending = false; btn.disabled = false; btn.textContent = btnText;
+      });
+      return;
+    }
     const calUrl = "https://calendar.google.com/calendar/render?action=TEMPLATE"
       + "&text=" + encodeURIComponent("Rezervace: " + f.name.value.trim())
       + "&dates=" + iso(s.from).replace(/-/g, "") + "/" + iso(s.to).replace(/-/g, "")

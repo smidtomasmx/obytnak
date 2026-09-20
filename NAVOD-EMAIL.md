@@ -1,5 +1,8 @@
 # Automatické odesílání poptávek e-mailem
 
+> **Poznámka:** Toto je popis ZÁLOŽNÍHO odesílání přes FormSubmit. Používá se jen tehdy, když je ve formuláři prázdný atribut `data-api-url`.
+> Po nasazení rezervačního systému s Google Kalendářem (viz `NAVOD-REZERVACE.md`) poptávky chodí přes něj a FormSubmit se nepoužije.
+
 Po kliknutí na „Odeslat poptávku“ na stránce Rezervace se **e-mail odešle sám** na adresu majitele
 a **zákazník dostane automatické potvrzení** (poptávka byla doručena, do 24 hodin bude potvrzena).
 Nic se neotevírá a zákazník nemusí nic dalšího klikat.
