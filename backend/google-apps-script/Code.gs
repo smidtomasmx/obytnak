@@ -22,14 +22,19 @@
 /* =========================== NASTAVENÍ (jediné místo) =========================== */
 const CONFIG = {
   OWNER_EMAIL: 'obytnakvysocina@icloud.com',   // kam chodí poptávky a potvrzení (správce)
-  OWNER_PHONE: '+420 777 123 456',             // uvádí se v e-mailech pro zákazníka
+  OWNER_PHONE: '+420 732 574 782',             // uvádí se v e-mailech pro zákazníka
   CALENDAR_ID: '5990ff64f3e5f5f05869d3d0b27516a105001076221c4289f92f6b5cc70f2b26@group.calendar.google.com',
   BRAND: 'Obytňák Vysočina',
   VEHICLE: 'Forster A 699 HB',
   SHEET_NAME: 'Poptávky',                      // název listu v Google Tabulce
   TIMEZONE: 'Europe/Prague',
 
-  MIN_NIGHTS: 1,                               // absolutní minimum (sezónní minima hlídá web)
+  // Minimální délka pronájmu. Platí podle data PŘEVZETÍ (stejně jako ve webu) a backend ji vynucuje
+  // i při přímém POST požadavku. Vymezení hlavní sezóny musí být STEJNÉ jako v rezervace.html
+  // (tabulka Sazby, řádek "Hlavní sezóna": data-ranges="07-01/08-31") – při změně upravte OBĚ místa.
+  HIGH_SEASON: [['07-01', '08-31']],           // hlavní sezóna: MM-DD od – do (včetně)
+  MIN_NIGHTS_HIGH_SEASON: 5,                   // v hlavní sezóně nejméně 5 nocí
+  MIN_NIGHTS_OFF_SEASON: 2,                    // mimo sezónu nejméně 2 noci
   MAX_NIGHTS: 60,                              // nejdelší povolený pronájem
   MAX_GUESTS: 6,                               // počet míst k spaní/jízdě
   MAX_ADVANCE_DAYS: 730,                       // jak daleko dopředu lze rezervovat
@@ -38,6 +43,7 @@ const CONFIG = {
   MAX_PER_EMAIL_PER_HOUR: 3,                   // limit poptávek jednoho e-mailu za hodinu
   MAX_TOTAL_PER_HOUR: 40,                      // celkový limit poptávek za hodinu
   NOTIFY_CUSTOMER_ON_REJECT: true,             // poslat zákazníkovi e-mail, když poptávku zamítnete
+  NOTIFY_CUSTOMER_ON_CANCEL: true,             // poslat zákazníkovi e-mail, když zrušíte POTVRZENOU rezervaci
 };
 
 const STATUS = { INQUIRY: 'POPTÁVKA', CONFIRMED: 'POTVRZENO', CANCELLED: 'ZRUŠENO' };
@@ -74,6 +80,15 @@ function czDate_(s) { const p = String(s).split('-'); return p[2] + '.' + p[1] +
 
 /** Správné překrytí: nový_začátek < existující_konec  A  nový_konec > existující_začátek */
 function overlaps_(aStart, aEnd, bStart, bEnd) { return aStart < bEnd && aEnd > bStart; }
+
+/** 'noc' / 'noci' / 'nocí' (stejně jako ve webu) */
+function nightsWord_(n) { return n === 1 ? 'noc' : n < 5 ? 'noci' : 'nocí'; }
+/** Minimální počet nocí podle data převzetí ('YYYY-MM-DD'): hlavní sezóna 5, mimo sezónu 2. */
+function minNightsFor_(fromYmd) {
+  const md = String(fromYmd).slice(5);                       // 'MM-DD'
+  const inHigh = CONFIG.HIGH_SEASON.some(function (r) { return md >= r[0] && md <= r[1]; });
+  return inHigh ? CONFIG.MIN_NIGHTS_HIGH_SEASON : CONFIG.MIN_NIGHTS_OFF_SEASON;
+}
 
 function escHtml_(s) {
   return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -271,7 +286,8 @@ function validateInquiry_(p) {
     else if (d.from > addDaysYmd_(today, CONFIG.MAX_ADVANCE_DAYS)) errors.dates = 'Termín je příliš daleko v budoucnosti.';
     else {
       d.nights = daysBetween_(d.from, d.to);
-      if (d.nights < CONFIG.MIN_NIGHTS) errors.dates = 'Pronájem je příliš krátký.';
+      const minN = minNightsFor_(d.from);
+      if (d.nights < minN) errors.dates = 'Minimální délka pronájmu pro tento termín je ' + minN + ' ' + nightsWord_(minN) + '.';
       else if (d.nights > CONFIG.MAX_NIGHTS) errors.dates = 'Nejdelší možný pronájem je ' + CONFIG.MAX_NIGHTS + ' nocí. Kontaktujte nás prosím telefonicky.';
     }
   }
@@ -409,6 +425,13 @@ function sendCustomerRejected_(o) {
     CONFIG.OWNER_PHONE + '.\n\nS pozdravem\n' + CONFIG.BRAND;
   MailApp.sendEmail({ to: o.email, subject: 'K Vaší poptávce – ' + CONFIG.BRAND, body: text, replyTo: CONFIG.OWNER_EMAIL, name: CONFIG.BRAND });
 }
+/** E-mail zákazníkovi při zrušení už POTVRZENÉ rezervace (jiný text než při zamítnutí poptávky). */
+function sendCustomerCancelled_(o) {
+  const text = 'Dobrý den,\n\nVaše potvrzená rezervace obytného vozu ' + CONFIG.VEHICLE + ' na termín ' + czDate_(o.from) + ' – ' +
+    czDate_(o.to) + ' byla ZRUŠENA. Termín je opět volný.\n\nPokud máte dotaz nebo chcete domluvit jiný termín, odpovězte na tento e-mail ' +
+    'nebo nám zavolejte na ' + CONFIG.OWNER_PHONE + '.\n\nS pozdravem\n' + CONFIG.BRAND;
+  MailApp.sendEmail({ to: o.email, subject: 'Rezervace zrušena – ' + CONFIG.BRAND, body: text, replyTo: CONFIG.OWNER_EMAIL, name: CONFIG.BRAND });
+}
 function sendOwnerConfirmed_(o) {
   const cancelUrl = actionLink_(o.id, 'cancel');
   MailApp.sendEmail({
@@ -496,7 +519,7 @@ function adminAction(id, action, token) {
         try { const ev = calendar_().getEventById(o.eventId); if (ev) ev.deleteEvent(); } catch (e) { console.error('Mazání události: ' + e); }
       }
       setRowFields_(row.rowIndex, { 'Stav': STATUS.CANCELLED });
-      if (CONFIG.NOTIFY_CUSTOMER_ON_REJECT) mail = function () { try { sendCustomerRejected_(o); } catch (e) { console.error(e); } };
+      if (CONFIG.NOTIFY_CUSTOMER_ON_CANCEL) mail = function () { try { sendCustomerCancelled_(o); } catch (e) { console.error(e); } };
       return { ok: true, message: 'Rezervace byla zrušena a termín je opět volný.' };
     }
     return { ok: false, message: 'Neznámá akce.' };

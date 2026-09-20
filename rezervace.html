@@ -57,17 +57,19 @@
               - Sloupec "Min. nocí" a "Cena / den" se čtou z textu buňky (stačí přepsat číslo).
               - Atribut data-ranges = data sezóny ve tvaru MM-DD/MM-DD (např. 07-01/08-31, více období oddělte čárkou).
                 Řádek s data-ranges="default" platí pro všechny dny, které nespadají do žádné jiné sezóny.
-              - Stejné ceny jsou i na stránce cenik.html (tabulka Ceník). Při změně cen upravte OBĚ místa.
+              - Stejné ceny a minimální délky pronájmu jsou i na stránce cenik.html (tabulka Ceník). Při změně upravte OBĚ místa.
+              - Minimální délku (Min. nocí) a vymezení hlavní sezóny vynucuje i backend (backend/google-apps-script/Code.gs:
+                MIN_NIGHTS_HIGH_SEASON, MIN_NIGHTS_OFF_SEASON, HIGH_SEASON). Při změně upravte i tam a znovu nasaďte skript.
             -->
             <div class="table-wrap">
               <table id="priceTable">
                 <thead><tr><th>Sezóna</th><th>Období</th><th>Min. nocí</th><th>Cena / den</th></tr></thead>
                 <tbody>
-                <tr data-ranges="07-01/08-31"><td>Hlavní sezóna</td><td>červenec – srpen</td><td>7</td><td>3 990 Kč</td></tr>
-                <tr data-ranges="06-01/06-30"><td>Červen</td><td>červen</td><td>4</td><td>3 790 Kč</td></tr>
-                <tr data-ranges="05-01/05-31, 09-01/09-30"><td>Květen a září</td><td>květen, září</td><td>4</td><td>3 490 Kč</td></tr>
-                <tr data-ranges="02-01/04-30, 10-01/10-31, 12-23/12-31"><td>Jaro, říjen a Vánoce</td><td>únor – duben, říjen, 23.–31. 12.</td><td>4</td><td>2 990 Kč</td></tr>
-                <tr data-ranges="default"><td>Zima</td><td>listopad, 1.–22. 12., leden</td><td>4</td><td>2 290 Kč</td></tr>
+                <tr data-ranges="07-01/08-31"><td>Hlavní sezóna</td><td>červenec – srpen</td><td>5</td><td>3 990 Kč</td></tr>
+                <tr data-ranges="06-01/06-30"><td>Červen</td><td>červen</td><td>2</td><td>3 790 Kč</td></tr>
+                <tr data-ranges="05-01/05-31, 09-01/09-30"><td>Květen a září</td><td>květen, září</td><td>2</td><td>3 490 Kč</td></tr>
+                <tr data-ranges="02-01/04-30, 10-01/10-31, 12-23/12-31"><td>Jaro, říjen a Vánoce</td><td>únor – duben, říjen, 23.–31. 12.</td><td>2</td><td>2 990 Kč</td></tr>
+                <tr data-ranges="default"><td>Zima</td><td>listopad, 1.–22. 12., leden</td><td>2</td><td>2 290 Kč</td></tr>
                 </tbody>
                 <tbody>
                 <tr data-from="11"><td colspan="3">Sleva od 11 nocí pronájmu</td><td>10 %</td></tr>
@@ -97,9 +99,9 @@
               data-brand="Obytňák Vysočina"
               data-vehicle="Forster A 699 HB"
               data-owner-email="obytnakvysocina@icloud.com"
-              data-owner-phone="+420 777 123 456"
+              data-owner-phone="+420 732 574 782"
               data-api-url=""
-              data-autoresponse="Dobrý den, děkujeme za vaši poptávku, dorazila k nám v pořádku. Nejpozději do 24 hodin vám ji potvrdíme. Kdyby cokoli, ozvěte se na telefon +420 777 123 456. S pozdravem Obytňák Vysočina">
+              data-autoresponse="Dobrý den, děkujeme za vaši poptávku, dorazila k nám v pořádku. Nejpozději do 24 hodin vám ji potvrdíme. Kdyby cokoli, ozvěte se na telefon +420 732 574 782. S pozdravem Obytňák Vysočina">
               <div class="row2">
                 <div><label for="dateFrom">Převzetí</label><input type="date" id="dateFrom" name="dateFrom" required></div>
                 <div><label for="dateTo">Vrácení</label><input type="date" id="dateTo" name="dateTo" required></div>
@@ -184,7 +186,7 @@
         <div>
           <h4>Kontakt</h4>
           <ul>
-            <li><a href="tel:+420777123456">+420 777 123 456</a></li>
+            <li><a href="tel:+420732574782">+420 732 574 782</a></li>
             <li><a href="mailto:obytnakvysocina@icloud.com">obytnakvysocina@icloud.com</a></li>
             <li>Nad Cihelnou 663, 582 91 Světlá nad Sázavou</li>
             <li>Po–Ne 8:00–20:00 (po domluvě)</li>

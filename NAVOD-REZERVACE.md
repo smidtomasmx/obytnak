@@ -12,10 +12,12 @@ Ve veřejném webu nejsou žádné klíče ani hesla, jen adresa Web Appu.
 4. Poptávka **termín neblokuje**. Obsazený je až po vašem potvrzení.
 5. Klik na odkaz otevře stránku s tlačítkem. Až po kliknutí na tlačítko skript pod zámkem znovu ověří kalendář
    (kdyby mezitím potvrdil termín někdo jiný) a vytvoří událost **„REZERVACE – Jméno“**. Zákazník dostane potvrzení.
-6. Potvrzenou rezervaci můžete zrušit odkazem v e-mailu o potvrzení. Termín se pak uvolní.
+6. Potvrzenou rezervaci můžete zrušit odkazem v e-mailu o potvrzení. Termín se pak uvolní a zákazník dostane samostatný e-mail o zrušení rezervace (jiný než při zamítnutí poptávky).
 
 Stavy: **POPTÁVKA → POTVRZENO** nebo **ZRUŠENO**.
 Vrácení a převzetí v tentýž den je povoleno (10.–17. 7. a 17.–24. 7. se nepřekrývají).
+
+**Minimální délka pronájmu:** v hlavní sezóně (1. 7. – 31. 8.) nejméně **5 nocí**, mimo sezónu nejméně **2 noci**. Pravidlo platí podle data převzetí a kontroluje ho web i backend (přímý požadavek na backend ho neobejde). Hodnoty jsou v `rezervace.html` (tabulka Sazby, sloupec Min. nocí) a v `Code.gs` (`HIGH_SEASON`, `MIN_NIGHTS_HIGH_SEASON`, `MIN_NIGHTS_OFF_SEASON`). Při změně upravte obě místa a znovu nasaďte skript.
 
 ---
 
