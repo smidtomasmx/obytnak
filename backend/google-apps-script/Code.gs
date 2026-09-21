@@ -33,9 +33,9 @@ const CONFIG = {
   // i při přímém POST požadavku. Vymezení hlavní sezóny musí být STEJNÉ jako v rezervace.html
   // (tabulka Sazby, řádek "Hlavní sezóna": data-ranges="07-01/08-31") – při změně upravte OBĚ místa.
   HIGH_SEASON: [['07-01', '08-31']],           // hlavní sezóna: MM-DD od – do (včetně)
-  MIN_NIGHTS_HIGH_SEASON: 5,                   // v hlavní sezóně nejméně 5 nocí
-  MIN_NIGHTS_OFF_SEASON: 2,                    // mimo sezónu nejméně 2 noci
-  MAX_NIGHTS: 60,                              // nejdelší povolený pronájem
+  MIN_DAYS_HIGH_SEASON: 5,                     // v hlavní sezóně nejméně 5 dní
+  MIN_DAYS_OFF_SEASON: 2,                      // mimo sezónu nejméně 2 dny
+  MAX_DAYS: 60,                                // nejdelší povolený pronájem (ve dnech)
   MAX_GUESTS: 6,                               // počet míst k spaní/jízdě
   MAX_ADVANCE_DAYS: 730,                       // jak daleko dopředu lze rezervovat
 
@@ -48,7 +48,7 @@ const CONFIG = {
 
 const STATUS = { INQUIRY: 'POPTÁVKA', CONFIRMED: 'POTVRZENO', CANCELLED: 'ZRUŠENO' };
 const COLS = ['ID', 'Vytvořeno', 'Stav', 'Jméno', 'Telefon', 'E-mail', 'Osob', 'Převzetí', 'Vrácení',
-              'Nocí', 'Poznámka', 'ID události v kalendáři', 'Aktualizováno', 'RequestId'];
+              'Dní', 'Poznámka', 'ID události v kalendáři', 'Aktualizováno', 'RequestId'];
 const COL = COLS.reduce((o, n, i) => { o[n] = i; return o; }, {});
 
 /* ================================ POMOCNÉ FUNKCE ================================ */
@@ -81,13 +81,13 @@ function czDate_(s) { const p = String(s).split('-'); return p[2] + '.' + p[1] +
 /** Správné překrytí: nový_začátek < existující_konec  A  nový_konec > existující_začátek */
 function overlaps_(aStart, aEnd, bStart, bEnd) { return aStart < bEnd && aEnd > bStart; }
 
-/** 'noc' / 'noci' / 'nocí' (stejně jako ve webu) */
-function nightsWord_(n) { return n === 1 ? 'noc' : n < 5 ? 'noci' : 'nocí'; }
-/** Minimální počet nocí podle data převzetí ('YYYY-MM-DD'): hlavní sezóna 5, mimo sezónu 2. */
-function minNightsFor_(fromYmd) {
+/** 'den' / 'dny' / 'dní' (stejně jako ve webu) */
+function daysWord_(n) { return n === 1 ? 'den' : n < 5 ? 'dny' : 'dní'; }
+/** Minimální počet dní podle data převzetí ('YYYY-MM-DD'): hlavní sezóna 5, mimo sezónu 2. */
+function minDaysFor_(fromYmd) {
   const md = String(fromYmd).slice(5);                       // 'MM-DD'
   const inHigh = CONFIG.HIGH_SEASON.some(function (r) { return md >= r[0] && md <= r[1]; });
-  return inHigh ? CONFIG.MIN_NIGHTS_HIGH_SEASON : CONFIG.MIN_NIGHTS_OFF_SEASON;
+  return inHigh ? CONFIG.MIN_DAYS_HIGH_SEASON : CONFIG.MIN_DAYS_OFF_SEASON;
 }
 
 function escHtml_(s) {
@@ -186,7 +186,7 @@ function rowToObj_(r) {
   return {
     id: String(v[COL['ID']]), status: String(v[COL['Stav']]), name: String(v[COL['Jméno']]),
     phone: String(v[COL['Telefon']]), email: String(v[COL['E-mail']]), guests: v[COL['Osob']],
-    from: cellYmd_(v[COL['Převzetí']]), to: cellYmd_(v[COL['Vrácení']]), nights: v[COL['Nocí']],
+    from: cellYmd_(v[COL['Převzetí']]), to: cellYmd_(v[COL['Vrácení']]), days: v[COL['Dní']],
     note: String(v[COL['Poznámka']]), eventId: String(v[COL['ID události v kalendáři']] || ''),
   };
 }
@@ -219,6 +219,7 @@ function getBusyRanges_(fromYmd, toYmd) {
   const from = addDays_(parseYmd_(fromYmd), -1), to = addDays_(parseYmd_(toYmd), 2);
   return calendar_().getEvents(from, to).map(eventToRange_).sort(function (a, b) { return a.start < b.start ? -1 : a.start > b.start ? 1 : 0; });
 }
+/** Je období [startYmd, endYmd) volné? endYmd je první volný den, tedy den vrácení + 1. */
 function isRangeFree_(startYmd, endYmd) {
   const busy = getBusyRanges_(startYmd, endYmd);
   for (let i = 0; i < busy.length; i++) if (overlaps_(startYmd, endYmd, busy[i].start, busy[i].end)) return false;
@@ -276,19 +277,20 @@ function validateInquiry_(p) {
   if (!(d.guests >= 1 && d.guests <= CONFIG.MAX_GUESTS)) errors.guests = 'Počet osob musí být 1 až ' + CONFIG.MAX_GUESTS + '.';
   d.note = clean_(p.note, 1000);
   d.estimate = clean_(p.estimate, 40);
+  d.extras = clean_(p.extras, 200);
   d.from = String(p.from || ''); d.to = String(p.to || '');
   const from = parseYmd_(d.from), to = parseYmd_(d.to);
   if (!from || !to) errors.dates = 'Vyberte platné datum převzetí a vrácení.';
   else {
     const today = todayYmd_();
     if (d.from < today) errors.dates = 'Datum převzetí nemůže být v minulosti.';
-    else if (d.to <= d.from) errors.dates = 'Vrácení musí být po převzetí.';
+    else if (d.to < d.from) errors.dates = 'Vrácení nemůže být před převzetím.';
     else if (d.from > addDaysYmd_(today, CONFIG.MAX_ADVANCE_DAYS)) errors.dates = 'Termín je příliš daleko v budoucnosti.';
     else {
-      d.nights = daysBetween_(d.from, d.to);
-      const minN = minNightsFor_(d.from);
-      if (d.nights < minN) errors.dates = 'Minimální délka pronájmu pro tento termín je ' + minN + ' ' + nightsWord_(minN) + '.';
-      else if (d.nights > CONFIG.MAX_NIGHTS) errors.dates = 'Nejdelší možný pronájem je ' + CONFIG.MAX_NIGHTS + ' nocí. Kontaktujte nás prosím telefonicky.';
+      d.days = daysBetween_(d.from, d.to) + 1;             // den převzetí i den vrácení se počítají
+      const minN = minDaysFor_(d.from);
+      if (d.days < minN) errors.dates = 'Minimální délka pronájmu pro tento termín je ' + minN + ' ' + daysWord_(minN) + '.';
+      else if (d.days > CONFIG.MAX_DAYS) errors.dates = 'Nejdelší možný pronájem je ' + CONFIG.MAX_DAYS + ' dní. Kontaktujte nás prosím telefonicky.';
     }
   }
   return { ok: Object.keys(errors).length === 0, data: d, errors: errors };
@@ -329,7 +331,7 @@ function submitInquiry_(p) {
   let id, rowIndex;
   try {
     // 1) termín nesmí kolidovat s potvrzenou rezervací v Google Kalendáři
-    if (!isRangeFree_(d.from, d.to)) {
+    if (!isRangeFree_(d.from, addDaysYmd_(d.to, 1))) {
       return { ok: false, code: 'BUSY', message: 'Tento termín již není k dispozici. Vyberte prosím jiný termín.' };
     }
     // 2) stejná otevřená poptávka téhož zákazníka se neukládá dvakrát
@@ -353,8 +355,8 @@ function submitInquiry_(p) {
     row[COL['Osob']] = d.guests;
     row[COL['Převzetí']] = d.from;
     row[COL['Vrácení']] = d.to;
-    row[COL['Nocí']] = d.nights;
-    row[COL['Poznámka']] = d.note;
+    row[COL['Dní']] = d.days;
+    row[COL['Poznámka']] = (d.extras ? 'Doplňky: ' + d.extras + (d.note ? '. ' : '') : '') + d.note;   // doplňky se ukládají do poznámky (tabulka nemá vlastní sloupec)
     row[COL['RequestId']] = requestId;
     rowIndex = appendInquiryRow_(row);
 
@@ -377,13 +379,14 @@ function submitInquiry_(p) {
 function summaryLines_(o) {
   return [
     ['Jméno', o.name], ['Telefon', o.phone], ['E-mail', o.email], ['Počet osob', o.guests],
-    ['Převzetí', czDate_(o.from)], ['Vrácení', czDate_(o.to)], ['Počet nocí', o.nights],
+    ['Převzetí', czDate_(o.from)], ['Vrácení', czDate_(o.to)], ['Počet dní', o.days],
     ['Poznámka', o.note ? o.note : '–'],
   ];
 }
 function sendOwnerInquiry_(id, d) {
   const confirmUrl = actionLink_(id, 'confirm'), rejectUrl = actionLink_(id, 'reject');
   const lines = summaryLines_(d);
+  if (d.extras) lines.push(['Doplňky', d.extras]);
   if (d.estimate) lines.push(['Orientační cena (podle webu)', d.estimate]);
   const text = ['NOVÁ POPTÁVKA PRONÁJMU OBYTNÉHO VOZU', ''].concat(
     lines.map(function (l) { return l[0] + ': ' + l[1]; }),
@@ -491,10 +494,10 @@ function adminAction(id, action, token) {
       if (o.status === STATUS.CONFIRMED) return { ok: true, message: 'Tato rezervace je již potvrzená.' };
       if (o.status === STATUS.CANCELLED) return { ok: false, message: 'Tato poptávka byla zamítnuta nebo zrušena, nelze ji potvrdit.' };
       // ZNOVU zkontrolovat kalendář – mezitím mohl termín potvrdit někdo jiný
-      if (!isRangeFree_(o.from, o.to)) {
+      if (!isRangeFree_(o.from, addDaysYmd_(o.to, 1))) {
         return { ok: false, message: 'Termín ' + czDate_(o.from) + ' – ' + czDate_(o.to) + ' mezitím obsadila jiná rezervace. Potvrdit ji nelze. Poptávku můžete zamítnout.' };
       }
-      const ev = calendar_().createAllDayEvent('REZERVACE – ' + o.name, parseYmd_(o.from), parseYmd_(o.to), {
+      const ev = calendar_().createAllDayEvent('REZERVACE – ' + o.name, parseYmd_(o.from), addDays_(parseYmd_(o.to), 1), {   // konec události = den po vrácení
         description: ['Stav: ' + STATUS.CONFIRMED, 'Jméno: ' + o.name, 'Telefon: ' + o.phone, 'E-mail: ' + o.email, 'Počet osob: ' + o.guests,
           'Převzetí: ' + czDate_(o.from), 'Vrácení: ' + czDate_(o.to), 'Poznámka: ' + (o.note || '–'), 'ID: ' + o.id].join('\n'),
       });

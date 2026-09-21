@@ -15,9 +15,9 @@ Ve veřejném webu nejsou žádné klíče ani hesla, jen adresa Web Appu.
 6. Potvrzenou rezervaci můžete zrušit odkazem v e-mailu o potvrzení. Termín se pak uvolní a zákazník dostane samostatný e-mail o zrušení rezervace (jiný než při zamítnutí poptávky).
 
 Stavy: **POPTÁVKA → POTVRZENO** nebo **ZRUŠENO**.
-Vrácení a převzetí v tentýž den je povoleno (10.–17. 7. a 17.–24. 7. se nepřekrývají).
+Pronájem se počítá na **dny**: den převzetí i den vrácení se počítají a jsou v kalendáři obsazené (25.–28. 9. = 4 dny, 25., 26., 27. i 28. 9. jsou modré). Další zákazník může převzít vůz nejdříve následující den (29. 9.).
 
-**Minimální délka pronájmu:** v hlavní sezóně (1. 7. – 31. 8.) nejméně **5 nocí**, mimo sezónu nejméně **2 noci**. Pravidlo platí podle data převzetí a kontroluje ho web i backend (přímý požadavek na backend ho neobejde). Hodnoty jsou v `rezervace.html` (tabulka Sazby, sloupec Min. nocí) a v `Code.gs` (`HIGH_SEASON`, `MIN_NIGHTS_HIGH_SEASON`, `MIN_NIGHTS_OFF_SEASON`). Při změně upravte obě místa a znovu nasaďte skript.
+**Minimální délka pronájmu:** v hlavní sezóně (1. 7. – 31. 8.) nejméně **5 dní**, mimo sezónu nejméně **2 dny**. Pravidlo platí podle data převzetí a kontroluje ho web i backend (přímý požadavek na backend ho neobejde). Hodnoty jsou v `rezervace.html` (tabulka Sazby, sloupec Min. dní) a v `Code.gs` (`HIGH_SEASON`, `MIN_DAYS_HIGH_SEASON`, `MAX_DAYS`, `MIN_DAYS_OFF_SEASON`). Při změně upravte obě místa a znovu nasaďte skript.
 
 ---
 
@@ -108,6 +108,6 @@ URL zůstane stejná, `rezervace.html` se měnit nemusí.
 ## Poznámky
 - E-maily odcházejí z vašeho Google účtu (bezplatný účet má denní limit kolem 100 zpráv, pro tento provoz stačí).
 - Pražská verze (`praha/`) zůstala beze změny a funguje jako dříve. Napojení na vlastní kalendář se řeší později.
-- Kalendář používá celodenní události. Konec události je **den vrácení** (ten už není obsazený),
-  proto lze převzít vůz v den vrácení předchozího zákazníka. Termíny, které si do kalendáře zapíšete ručně
+- Kalendář používá celodenní události. Web čte konec události tak, jak ho ukazuje Google Kalendář (poslední obsazený den = den vrácení),
+  a stejně nové události zapisuje i skript. Termíny, které si do kalendáře zapíšete ručně (celodenní událost od–do včetně posledního dne)
   (např. servis), web také bere jako obsazené.

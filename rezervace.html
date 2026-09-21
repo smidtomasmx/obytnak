@@ -43,27 +43,31 @@
         <!-- KALENDÁŘ -->
         <div class="panel">
           <h2 style="font-size:1.5rem">1. Kalendář obsazenosti</h2>
-          <p class="muted">Obsazené termíny jsou v kalendáři vyznačeny. Volné dny můžete rezervovat.</p>
+          <p class="muted">Obsazené dny jsou v kalendáři modré. Klikněte na den převzetí a poté na den vrácení, termín se sám doplní do poptávky.</p>
           <!-- Vložte ID Google Kalendáře do data-calendar-id (Nastavení kalendáře → Integrovat kalendář). Kalendář musí být veřejný. -->
           <div id="calBox" data-calendar-id=""></div>
           <div class="legend">
             <span><i style="background:#4285f4"></i>Obsazeno</span>
             <span><i style="background:#dcdcdc"></i>Volno</span>
+            <span><i style="background:#2f9e44"></i>Váš výběr</span>
           </div>
           <details class="price-data">
             <summary>Sazby a údaje pro výpočet ceny</summary>
             <!--
               SAZBY PRO KALKULAČKU (upravujete přímo zde):
-              - Sloupec "Min. nocí" a "Cena / den" se čtou z textu buňky (stačí přepsat číslo).
+              - Pronájem se počítá na DNY: den převzetí i den vrácení se počítají (25. 9. – 28. 9. = 4 dny).
+              - Sloupec "Min. dní" a "Cena / den" se čtou z textu buňky (stačí přepsat číslo).
+              - Servisní poplatek (id="pdService") se účtuje jednou za pronájem, sleva za délku se na něj nevztahuje.
+              - Doplňkové položky (zaškrtávací pole ve formuláři) mají cenu v atributu data-price u každého pole.
               - Atribut data-ranges = data sezóny ve tvaru MM-DD/MM-DD (např. 07-01/08-31, více období oddělte čárkou).
                 Řádek s data-ranges="default" platí pro všechny dny, které nespadají do žádné jiné sezóny.
               - Stejné ceny a minimální délky pronájmu jsou i na stránce cenik.html (tabulka Ceník). Při změně upravte OBĚ místa.
-              - Minimální délku (Min. nocí) a vymezení hlavní sezóny vynucuje i backend (backend/google-apps-script/Code.gs:
-                MIN_NIGHTS_HIGH_SEASON, MIN_NIGHTS_OFF_SEASON, HIGH_SEASON). Při změně upravte i tam a znovu nasaďte skript.
+              - Minimální délku (Min. dní) a vymezení hlavní sezóny vynucuje i backend (backend/google-apps-script/Code.gs:
+                MIN_DAYS_HIGH_SEASON, MIN_DAYS_OFF_SEASON, HIGH_SEASON). Při změně upravte i tam a znovu nasaďte skript.
             -->
             <div class="table-wrap">
               <table id="priceTable">
-                <thead><tr><th>Sezóna</th><th>Období</th><th>Min. nocí</th><th>Cena / den</th></tr></thead>
+                <thead><tr><th>Sezóna</th><th>Období</th><th>Min. dní</th><th>Cena / den</th></tr></thead>
                 <tbody>
                 <tr data-ranges="07-01/08-31"><td>Hlavní sezóna</td><td>červenec – srpen</td><td>5</td><td>3 990 Kč</td></tr>
                 <tr data-ranges="06-01/06-30"><td>Červen</td><td>červen</td><td>2</td><td>3 790 Kč</td></tr>
@@ -72,12 +76,12 @@
                 <tr data-ranges="default"><td>Zima</td><td>listopad, 1.–22. 12., leden</td><td>2</td><td>2 290 Kč</td></tr>
                 </tbody>
                 <tbody>
-                <tr data-from="11"><td colspan="3">Sleva od 11 nocí pronájmu</td><td>10 %</td></tr>
-                <tr data-from="21"><td colspan="3">Sleva od 21 nocí pronájmu</td><td>15 %</td></tr>
+                <tr data-from="11"><td colspan="3">Sleva od 11 dní pronájmu</td><td>10 %</td></tr>
+                <tr data-from="21"><td colspan="3">Sleva od 21 dní pronájmu</td><td>15 %</td></tr>
                 </tbody>
               </table>
             </div>
-            <p class="note">Vratná kauce: <b id="pdDeposit">25 000 Kč</b> · Kilometry v ceně: <b id="pdKm">250</b> km denně</p>
+            <p class="note">Vratná kauce: <b id="pdDeposit">25 000 Kč</b> · Servisní poplatek: <b id="pdService">1 500 Kč</b> · Kilometry v ceně: <b id="pdKm">250</b> km denně · Všechny ceny jsou včetně DPH</p>
           </details>
         </div>
 
@@ -103,8 +107,8 @@
               data-api-url="https://script.google.com/macros/s/AKfycbyZKFp85HZH610IjIRHhM2wTtsMyhWGSGmI5-HHJqg2BTxpgFw87GL0V5pj4Zmbz_7k0g/exec"
               data-autoresponse="Dobrý den, děkujeme za vaši poptávku, dorazila k nám v pořádku. Nejpozději do 24 hodin vám ji potvrdíme. Kdyby cokoli, ozvěte se na telefon +420 732 574 782. S pozdravem Obytňák Vysočina">
               <div class="row2">
-                <div><label for="dateFrom">Převzetí</label><input type="date" id="dateFrom" name="dateFrom" required></div>
-                <div><label for="dateTo">Vrácení</label><input type="date" id="dateTo" name="dateTo" required></div>
+                <div><label for="dateFrom">Převzetí (první den)</label><input type="date" id="dateFrom" name="dateFrom" required></div>
+                <div><label for="dateTo">Vrácení (poslední den)</label><input type="date" id="dateTo" name="dateTo" required></div>
               </div>
               <p class="err" id="dateErr" role="alert"></p>
 
@@ -117,10 +121,17 @@
               </div>
 
               <div class="row2">
-                <div><label for="name">Jméno a příjmení</label><input id="name" name="name" autocomplete="name" required></div>
-                <div><label for="phone">Telefon</label><input id="phone" name="phone" type="tel" autocomplete="tel" required></div>
+                <div><label for="name">Jméno a příjmení</label><input id="name" name="name" autocomplete="name" required><p class="err field-err" id="err-name" role="alert"></p></div>
+                <div><label for="phone">Telefon</label><input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="+420 123 456 789" required><p class="err field-err" id="err-phone" role="alert"></p></div>
               </div>
-              <div><label for="email">E-mail</label><input id="email" name="email" type="email" autocomplete="email" required></div>
+              <div><label for="email">E-mail</label><input id="email" name="email" type="email" autocomplete="email" placeholder="jmeno@example.cz" required><p class="err field-err" id="err-email" role="alert"></p></div>
+
+              <fieldset class="extras">
+                <legend>Doplňkové položky (jednorázově)</legend>
+                <label class="check"><input type="checkbox" name="extra" value="Koloběžka" data-price="1000"> Koloběžka <small>1 000 Kč</small></label>
+                <label class="check"><input type="checkbox" name="extra" value="Pes" data-price="1000"> Pes <small>1 000 Kč</small></label>
+                <label class="check"><input type="checkbox" name="extra" value="Kočka" data-price="1000"> Kočka <small>1 000 Kč</small></label>
+              </fieldset>
               <div><label for="note">Poznámka (nepovinné)</label><textarea id="note" name="note" placeholder="Kam plánujete vyrazit, dotazy…"></textarea></div>
 
               <p class="err" id="formErr" role="alert"></p>

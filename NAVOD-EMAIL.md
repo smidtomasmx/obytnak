@@ -32,7 +32,7 @@ FormSubmit z bezpečnostních důvodů vyžaduje, aby majitel adresu jednou potv
 Pokud později změníte `data-owner-email` na jinou adresu, je potřeba aktivaci zopakovat.
 
 ## Co dostanete v e-mailu
-Tabulka s termínem převzetí a vrácení, počtem nocí a osob, orientační cenou, jménem, telefonem, e-mailem,
+Tabulka s termínem převzetí a vrácení, počtem dní, osob a vybraných doplňků, orientační cenou, jménem, telefonem, e-mailem,
 poznámkou a odkazem „Přidat do Google Kalendáře“ (jedním klikem si termín vložíte do kalendáře).
 Odpověď zákazníkovi napíšete rovnou tlačítkem Odpovědět, protože jeho e-mail je nastavený jako adresa pro odpověď.
 

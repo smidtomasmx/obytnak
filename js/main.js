@@ -13,7 +13,9 @@ const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())
 const fromIso = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
 const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
 const fmtDate = d => `${d.getDate()}. ${d.getMonth() + 1}. ${d.getFullYear()}`;
-const nightsWord = n => (n === 1 ? "noc" : n < 5 ? "noci" : "nocí");
+const daysWord = n => (n === 1 ? "den" : n < 5 ? "dny" : "dní");
+// Pronájem se počítá na DNY: den převzetí i den vrácení se počítají (25. 9. – 28. 9. = 4 dny).
+const rentalDays = (from, to) => Math.round((to - from) / 86400000) + 1;
 
 /* ---------- Menu na telefonu ---------- */
 function initNav() {
@@ -137,6 +139,7 @@ function readPrices() {
   return {
     seasons, base, tiers,
     deposit: num(($("#pdDeposit") || {}).textContent),
+    service: num(($("#pdService") || {}).textContent),
     km: num(($("#pdKm") || {}).textContent),
   };
 }
@@ -148,24 +151,44 @@ function seasonFor(P, date) {
   }
   return P.base;
 }
-const minNightsFor = (P, date) => seasonFor(P, date).min || 1;
+const minDaysFor = (P, date) => seasonFor(P, date).min || 1;
 
-function calcPrice(P, { from, to }) {
-  const nights = Math.round((to - from) / 86400000);
+// Cena = půjčovné (dny × sazba sezóny) − sleva za délku + servisní poplatek + doplňky. Všechny ceny jsou včetně DPH.
+function calcPrice(P, { from, to }, extras = []) {
+  const days = rentalDays(from, to);
   let rent = 0;
   const bySeason = new Map();
-  for (let i = 0; i < nights; i++) {
+  for (let i = 0; i < days; i++) {
     const s = seasonFor(P, addDays(from, i));
     rent += s.price;
     bySeason.set(s, (bySeason.get(s) || 0) + 1);
   }
-  const tier = P.tiers.filter(t => nights >= t.from).sort((a, b) => b.discount - a.discount)[0];
+  const tier = P.tiers.filter(t => days >= t.from).sort((a, b) => b.discount - a.discount)[0];
   const discount = tier ? Math.round(rent * tier.discount) : 0;
   const lines = [];
-  bySeason.forEach((n, s) => lines.push({ label: `${s.name} (${n} ${nightsWord(n)} × ${kc(s.price)})`, value: n * s.price }));
-  if (discount) lines.push({ label: `Sleva ${Math.round(tier.discount * 100)} % (od ${tier.from} nocí)`, value: -discount });
-  return { nights, lines, total: rent - discount };
+  bySeason.forEach((n, s) => lines.push({ label: `Půjčovné – ${s.name} (${n} ${daysWord(n)} × ${kc(s.price)})`, value: n * s.price }));
+  if (discount) lines.push({ label: `Sleva ${Math.round(tier.discount * 100)} % (od ${tier.from} dní)`, value: -discount });
+  if (P.service) lines.push({ label: "Servisní poplatek", value: P.service });
+  extras.forEach(x => lines.push({ label: x.name, value: x.price }));
+  return { days, lines, total: lines.reduce((sum, l) => sum + l.value, 0) };
 }
+
+// Kontrola kontaktních údajů (stejná pravidla jako na backendu, aby ho odeslání nezamítlo)
+const checkName = v => (v.trim().length < 2 ? "Zadejte jméno a příjmení." : "");
+const checkEmail = v => {
+  v = v.trim();
+  if (!v) return "Zadejte e-mail.";
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v) ? "" : "E-mail nemá správný tvar, zkontrolujte ho prosím (např. jmeno@example.cz).";
+};
+const checkPhone = v => {
+  v = v.trim();
+  if (!v) return "Zadejte telefon.";
+  const digits = v.replace(/\D/g, "");
+  if (!/^\+?[0-9 ()\-]{9,25}$/.test(v) || digits.length < 9 || digits.length > 15) return "Telefon nemá správný tvar (např. +420 123 456 789).";
+  const cz = /^(?:\+|00)420/.test(v.replace(/[ ()\-]/g, "")) ? digits.replace(/^(00)?420/, "") : null;
+  if (cz !== null && cz.length !== 9) return "České číslo má mít po předvolbě +420 devět číslic.";
+  return "";
+};
 
 /* ---------- Odeslání poptávky e-mailem přes FormSubmit (bez registrace) ---------- */
 function sendInquiry(ownerEmail, fields) {
@@ -180,10 +203,12 @@ function sendInquiry(ownerEmail, fields) {
 }
 const escHtml = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 /* ---------- Rezervační systém: komunikace s backendem (Google Apps Script Web App) ---------- */
-// Obsazená období z backendu jsou [{start, end}]. Konec = den vrácení (tento den už obsazený není),
-// proto lze převzít vůz v den, kdy jej jiný zákazník vrací. Překryv: nový_start < konec A nový_konec > start.
+// Obsazená období z backendu jsou [{start, end}], kde end je první VOLNÝ den (stejně jako celodenní událost
+// v Google Kalendáři: 25. 9. – 28. 9. včetně je uloženo jako start 25. 9., end 29. 9.).
+// Vybraný termín od–do (včetně obou dnů) se proto před porovnáním převede na [od, do + 1 den).
+const dayAfter = day => iso(addDays(fromIso(day), 1));
 const overlapsBusy = (from, to, busy) => busy.some(b => from < b.end && to > b.start);
-const isBusyNight = (day, busy) => busy.some(b => day >= b.start && day < b.end);
+const isBusyDay = (day, busy) => busy.some(b => day >= b.start && day < b.end);
 const nextBusyStart = (from, busy) => busy.map(b => b.start).filter(x => x > from).sort()[0] || "";
 
 function apiRequest(url, payload) {
@@ -198,8 +223,9 @@ function apiRequest(url, payload) {
     .finally(() => { if (timer) clearTimeout(timer); });
 }
 
-/* Přehled obsazenosti (jen VOLNO / OBSAZENO) v panelu #calBox. Žádné údaje o zákaznících. */
-function initAvailability(box, api, onData) {
+/* Kalendář obsazenosti v panelu #calBox (jen VOLNO / OBSAZENO, žádné údaje o zákaznících).
+   Volné dny jsou klikací: první klik = den převzetí, druhý = den vrácení (předá se přes onPick). */
+function initAvailability(box, api, onData, onPick) {
   const MONTHS = ["leden", "únor", "březen", "duben", "květen", "červen", "červenec", "srpen", "září", "říjen", "listopad", "prosinec"];
   const now = new Date(); now.setHours(0, 0, 0, 0);
   const first = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -217,12 +243,17 @@ function initAvailability(box, api, onData) {
       const day = `${y}-${pad(m + 1)}-${pad(d)}`;
       let cls = "av-free", label = "volno";
       if (day < todayIso) { cls = "av-past"; label = "minulost"; }
-      else if (isBusyNight(day, busy)) { cls = "av-busy"; label = "obsazeno"; }
-      else if (sel && day >= sel.from && day < sel.to) cls += " av-sel";
-      cells += `<span class="av-day ${cls}" role="img" aria-label="${d}. ${m + 1}. ${y} – ${label}">${d}</span>`;
+      else if (isBusyDay(day, busy)) { cls = "av-busy"; label = "obsazeno"; }
+      else if (sel && day >= sel.from && day <= (sel.to || sel.from)) { cls += " av-sel"; label = "vybráno"; }
+      const text = `${d}. ${m + 1}. ${y} – ${label}`;
+      cells += cls.startsWith("av-free")
+        ? `<button type="button" class="av-day ${cls}" data-day="${day}" aria-label="${text}"${sel && day === sel.from ? ' aria-pressed="true"' : ""}>${d}</button>`
+        : `<span class="av-day ${cls}" role="img" aria-label="${text}">${d}</span>`;
     }
     const msg = state === "loading" ? "Načítám obsazenost…"
-      : state === "error" ? "Obsazenost se nepodařilo načíst. Volnost termínu ověříme po odeslání poptávky." : "";
+      : state === "error" ? "Obsazenost se nepodařilo načíst. Volnost termínu ověříme po odeslání poptávky."
+      : !sel ? "Klikněte na den převzetí."
+      : !sel.to ? "Nyní klikněte na den vrácení." : "";
     box.innerHTML = `<div class="avail">
       <div class="av-head">
         <button type="button" class="av-nav" data-d="-1" aria-label="Předchozí měsíc"${view <= first ? " disabled" : ""}>‹</button>
@@ -233,6 +264,14 @@ function initAvailability(box, api, onData) {
       <p class="av-note" aria-live="polite">${msg}</p></div>`;
   }
   box.addEventListener("click", e => {
+    const dayBtn = e.target.closest("button[data-day]");
+    if (dayBtn) {
+      const day = dayBtn.dataset.day;
+      onPick(day);
+      const again = $(`button[data-day="${day}"]`, box);      // po překreslení vrať fokus (ovládání klávesnicí)
+      if (again) again.focus();
+      return;
+    }
     const b = e.target.closest(".av-nav");
     if (!b || b.disabled) return;
     view = new Date(view.getFullYear(), view.getMonth() + Number(b.dataset.d), 1);
@@ -248,7 +287,7 @@ function initAvailability(box, api, onData) {
       .catch(() => { state = "error"; render(); onData([]); });
   }
   load();
-  return { reload: load, select(from, to) { sel = from && to ? { from, to } : null; render(); } };
+  return { reload: load, select(from, to) { sel = from ? { from, to: to || "" } : null; render(); } };
 }
 
 /* ---------- Rezervace ---------- */
@@ -272,7 +311,7 @@ function initReservation() {
   const calBox = $("#calBox");
   const calId = (calBox.dataset.calendarId || "").trim();
   if (API) {
-    availability = initAvailability(calBox, API, ranges => { BUSY = ranges; update(); });
+    availability = initAvailability(calBox, API, ranges => { BUSY = ranges; update(); }, day => pickDay(day));
   } else if (calId) {
     calBox.innerHTML = `<iframe class="cal-frame" title="Kalendář obsazenosti" loading="lazy"
       src="https://calendar.google.com/calendar/embed?src=${encodeURIComponent(calId)}&ctz=Europe%2FPrague&hl=cs&mode=MONTH&showTitle=0&showPrint=0&showTabs=0&showCalendars=0&showTz=0&wkst=2"></iframe>`;
@@ -284,72 +323,99 @@ function initReservation() {
   const f = form.elements;
   const today = new Date(); today.setHours(0, 0, 0, 0);
   f.dateFrom.min = iso(today);
-  f.dateTo.min = iso(addDays(today, P ? minNightsFor(P, today) : 1));
+  const minDaysAt = date => (P ? minDaysFor(P, date) : 1);
+  f.dateTo.min = iso(addDays(today, minDaysAt(today) - 1));
 
   const state = () => ({
     from: f.dateFrom.value ? fromIso(f.dateFrom.value) : null,
     to: f.dateTo.value ? fromIso(f.dateTo.value) : null,
     guests: +f.guests.value || 1,
   });
+  const chosenExtras = () => $$("input[name=extra]:checked", form).map(c => ({ name: c.value, price: num(c.dataset.price) }));
 
   const validate = s => {
     if (!s.from || !s.to) return "Vyberte prosím datum převzetí a vrácení.";
     if (s.from < today) return "Datum převzetí nemůže být v minulosti.";
-    if (s.to <= s.from) return "Vrácení musí být po převzetí.";
-    if (API && overlapsBusy(iso(s.from), iso(s.to), BUSY)) return "Tento termín je obsazený.";
-    const n = Math.round((s.to - s.from) / 86400000);
-    const min = P ? minNightsFor(P, s.from) : 1;
-    if (n < min) return `Minimální délka pronájmu pro tento termín je ${min} ${nightsWord(min)}.`;
+    if (s.to < s.from) return "Vrácení nemůže být před převzetím.";
+    if (API && overlapsBusy(iso(s.from), dayAfter(iso(s.to)), BUSY)) return "V tomto termínu je vůz už obsazený.";
+    const n = rentalDays(s.from, s.to);
+    const min = minDaysAt(s.from);
+    if (n < min) return `Minimální délka pronájmu pro tento termín je ${min} ${daysWord(min)}.`;
     return "";
+  };
+
+  // Výběr dnů přímo v kalendáři: 1. klik = převzetí, 2. klik = vrácení (poslední den pronájmu)
+  let pickMsg = "";
+  const pickDay = day => {
+    const from = f.dateFrom.value;
+    const start = () => { f.dateFrom.value = day; f.dateTo.value = ""; };
+    pickMsg = "";
+    if (from && !f.dateTo.value && day >= from) {
+      if (overlapsBusy(from, dayAfter(day), BUSY)) start();        // mezi dny je obsazený termín → začít znovu od kliknutého dne
+      else {
+        const min = minDaysAt(fromIso(from));
+        if (rentalDays(fromIso(from), fromIso(day)) < min) pickMsg = `Minimální délka pronájmu pro tento termín je ${min} ${daysWord(min)}. Vyberte pozdější den vrácení.`;
+        else f.dateTo.value = day;
+      }
+    } else start();
+    update();
   };
 
   const sumBox = $("#summary"), errBox = $("#dateErr");
   const update = () => {
     const s = state();
-    if (P && s.from && (!s.to || s.to <= s.from)) f.dateTo.min = iso(addDays(s.from, minNightsFor(P, s.from)));
+    if (P && s.from) f.dateTo.min = iso(addDays(s.from, minDaysAt(s.from) - 1));
     if (API) {
-      // vrácení nelze vybrat za nejbližší obsazený termín (v den začátku cizí rezervace vrátit lze)
-      f.dateTo.max = s.from && !isBusyNight(iso(s.from), BUSY) ? nextBusyStart(iso(s.from), BUSY) : "";
-      if (availability) availability.select(s.from ? iso(s.from) : "", s.from && s.to && s.to > s.from ? iso(s.to) : "");
+      // vrátit lze nejpozději v poslední volný den před nejbližším obsazeným termínem
+      const nb = s.from && !isBusyDay(iso(s.from), BUSY) ? nextBusyStart(iso(s.from), BUSY) : "";
+      f.dateTo.max = nb ? iso(addDays(fromIso(nb), -1)) : "";
+      if (availability) availability.select(s.from ? iso(s.from) : "", s.from && s.to && s.to >= s.from ? iso(s.to) : "");
     }
     const err = s.from && s.to ? validate(s) : "";
-    if (API && s.from && !s.to && isBusyNight(iso(s.from), BUSY)) errBox.textContent = "Tento termín je obsazený.";
-    else errBox.textContent = err;
+    if (API && s.from && !s.to && isBusyDay(iso(s.from), BUSY)) errBox.textContent = "Tento den je už obsazený.";
+    else errBox.textContent = err || (s.to ? "" : pickMsg);
     if (!P || !s.from || !s.to || err) {
       sumBox.innerHTML = `<h3>Orientační cena</h3><p style="margin:0;opacity:.8">Vyberte termín a uvidíte cenu pronájmu.</p>`;
       return;
     }
-    const r = calcPrice(P, s);
-    sumBox.innerHTML = `<h3>Orientační cena · ${r.nights} ${nightsWord(r.nights)}</h3>
+    const r = calcPrice(P, s, chosenExtras());
+    sumBox.innerHTML = `<h3>Orientační cena · ${r.days} ${daysWord(r.days)}</h3>
       <ul>${r.lines.map(l => `<li><span>${l.label}</span><span>${l.value < 0 ? "−" : ""}${kc(Math.abs(l.value))}</span></li>`).join("")}</ul>
-      <div class="total"><span>Celkem</span><span>${kc(r.total)}</span></div>
-      <small>Vratná kauce ${kc(P.deposit)} se hradí při převzetí. V ceně je ${P.km} km/den.</small>`;
+      <div class="total"><span>Celkem včetně DPH</span><span>${kc(r.total)}</span></div>
+      <small>Všechny ceny jsou včetně DPH. Vratná kauce ${kc(P.deposit)} se hradí při převzetí a do ceny se nezapočítává. V ceně je ${P.km} km/den.</small>`;
   };
+  form.addEventListener("input", e => { if (e.target.type === "date") pickMsg = ""; });
   form.addEventListener("input", update);
   form.addEventListener("change", update);
   update();
+
+  // Kontrola jména, telefonu a e-mailu: při opuštění pole, průběžně po chybě a znovu při odeslání
+  const fieldChecks = { name: checkName, phone: checkPhone, email: checkEmail };
+  const checkField = name => {
+    const msg = fieldChecks[name](f[name].value);
+    $("#err-" + name).textContent = msg;
+    f[name].setAttribute("aria-invalid", msg ? "true" : "false");
+    return msg;
+  };
+  form.addEventListener("focusout", e => { if (fieldChecks[e.target.name] && e.target.value.trim()) checkField(e.target.name); });
+  form.addEventListener("input", e => { if (fieldChecks[e.target.name] && $("#err-" + e.target.name).textContent) checkField(e.target.name); });
 
   form.addEventListener("submit", e => {
     e.preventDefault();
     const s = state();
     const err = validate(s);
-    if (err) { errBox.textContent = err; f.dateFrom.focus(); return; }
-    if (!f.name.value.trim() || !f.phone.value.trim() || !f.email.value.trim()) {
-      $("#formErr").textContent = "Vyplňte prosím jméno, telefon i e-mail.";
-      return;
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.value.trim())) {
-      $("#formErr").textContent = "Zadejte prosím platný e-mail.";
-      return;
-    }
-    const phoneDigits = f.phone.value.replace(/\D/g, "");
-    if (!/^\+?[0-9 ()\-]{9,25}$/.test(f.phone.value.trim()) || phoneDigits.length < 9 || phoneDigits.length > 15) {
-      $("#formErr").textContent = "Zadejte prosím platný telefon.";
+    errBox.textContent = err;
+    const badFields = Object.keys(fieldChecks).filter(checkField);
+    if (err || badFields.length) {
+      $("#formErr").textContent = badFields.length ? "Opravte prosím zvýrazněné údaje ve formuláři." : "";
+      (err ? f.dateFrom : f[badFields[0]]).focus();
       return;
     }
     $("#formErr").textContent = "";
     if (f.website && f.website.value) return; // past na roboty (skryté pole)
-    const r = P ? calcPrice(P, s) : { nights: Math.round((s.to - s.from) / 86400000), total: 0 };
+    const extras = chosenExtras();
+    const r = P ? calcPrice(P, s, extras) : { days: rentalDays(s.from, s.to), total: 0 };
+    const extrasText = extras.map(x => x.name).join(", ");
 
     // ---- NOVÝ SYSTÉM: poptávku přijme backend (kontrola kalendáře, tabulka, e-mail správci) ----
     if (API) {
@@ -372,7 +438,7 @@ function initReservation() {
       apiRequest(API, {
         action: "inquiry", requestId, elapsed: Date.now() - openedAt, website: f.website ? f.website.value : "",
         name: f.name.value.trim(), phone: f.phone.value.trim(), email: custEmail, guests: s.guests,
-        from: iso(s.from), to: iso(s.to), note: f.note.value.trim(), estimate: kc(r.total),
+        from: iso(s.from), to: iso(s.to), note: f.note.value.trim(), extras: extrasText, estimate: kc(r.total) + " (vč. DPH)",
       }).then(res => {
         if (res && res.ok) {
           try { sessionStorage.setItem("resSent", JSON.stringify({ sig, t: Date.now() })); } catch (e) { /* nevadí */ }
@@ -396,7 +462,7 @@ function initReservation() {
     }
     const calUrl = "https://calendar.google.com/calendar/render?action=TEMPLATE"
       + "&text=" + encodeURIComponent("Rezervace: " + f.name.value.trim())
-      + "&dates=" + iso(s.from).replace(/-/g, "") + "/" + iso(s.to).replace(/-/g, "")
+      + "&dates=" + iso(s.from).replace(/-/g, "") + "/" + dayAfter(iso(s.to)).replace(/-/g, "")
       + "&details=" + encodeURIComponent(`Tel: ${f.phone.value.trim()}\nE-mail: ${f.email.value.trim()}\nOsob: ${s.guests}`);
     const subject = `Poptávka: ${fmtDate(s.from)} – ${fmtDate(s.to)} (${f.name.value.trim()})`;
     const custEmail = f.email.value.trim();
@@ -411,9 +477,10 @@ function initReservation() {
       "Telefon": f.phone.value.trim(),
       "Převzetí": fmtDate(s.from),
       "Vrácení": fmtDate(s.to),
-      "Počet nocí": r.nights,
+      "Počet dní": r.days,
       "Počet osob": s.guests,
-      "Orientační cena": kc(r.total),
+      "Doplňky": extrasText || "–",
+      "Orientační cena (vč. DPH)": kc(r.total),
       "Poznámka": f.note.value.trim() || "–",
       "Přidat do Google Kalendáře": calUrl,
     };

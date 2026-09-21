@@ -22,8 +22,8 @@ Vyhledávání provádějte zvlášť ve složce `praha/`, pokud se tam údaje l
 Sazby jsou na **dvou místech**, upravte obě:
 1. `cenik.html` → tabulka „Cena pronájmu za den“ (co vidí zákazník).
 2. `rezervace.html` → rozbalovací „Sazby a údaje pro výpočet ceny“ (podle toho počítá kalkulačka).
-   - Číslo v posledních dvou sloupcích (Min. nocí, Cena / den) stačí přepsat.
-   - **Min. nocí** hlídá i backend (`backend/google-apps-script/Code.gs`: `MIN_NIGHTS_HIGH_SEASON`, `MIN_NIGHTS_OFF_SEASON`, `HIGH_SEASON`) a zobrazuje se i v ceníku. Při změně upravte všechna tři místa.
+   - Číslo v posledních dvou sloupcích (Min. dní, Cena / den) stačí přepsat.
+   - **Min. dní** hlídá i backend (`backend/google-apps-script/Code.gs`: `MIN_DAYS_HIGH_SEASON`, `MIN_DAYS_OFF_SEASON`, `HIGH_SEASON`) a zobrazuje se i v ceníku. Při změně upravte všechna tři místa.
    - Atribut `data-ranges` určuje data sezóny (`MM-DD/MM-DD`, více období oddělte čárkou).
    - Řádek `data-ranges="default"` platí pro všechny dny mimo ostatní sezóny.
    - Slevy za délku pobytu jsou v druhé části tabulky (řádky `data-from`).
@@ -48,3 +48,9 @@ a změnou `id` (adresa článku, malá písmena a pomlčky) a odkazů `href="#�
 ## Co je v JavaScriptu
 `js/main.js` obsahuje jen chování (menu, galerie, kalkulačka, odesílání). Žádné texty ani ceny v něm nejsou
 a v pražské složce je úplně stejný.
+
+## Kalkulačka: servisní poplatek, doplňky a DPH
+- **Servisní poplatek** (1 500 Kč jednorázově) je v `rezervace.html` v rozbalovací části „Sazby a údaje“ (`<b id="pdService">`). Sleva za délku pronájmu se na něj nevztahuje.
+- **Doplňkové položky** (zaškrtávací pole ve formuláři „2. Vaše poptávka“) mají cenu v atributu `data-price`. Ceny doplňků jsou i v `cenik.html`, při změně upravte obě místa.
+- Všechny ceny jsou **včetně DPH**, uvádí se to v kalkulačce, v ceníku i v e-mailu s poptávkou.
+- Pronájem se počítá na **dny** (den převzetí i vrácení se počítají).
