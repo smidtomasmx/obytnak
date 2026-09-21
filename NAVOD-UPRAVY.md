@@ -31,7 +31,7 @@ Sazby jsou na **dvou místech**, upravte obě:
 Ostatní hodnoty:
 | Co | Kde |
 |---|---|
-| Kauce, kilometry v ceně | `cenik.html` (sekce Podmínky) a `rezervace.html` (`id="pdDeposit"`, `id="pdKm"`) |
+| Kauce, nájezd (bez limitu) | `cenik.html` (sekce Podmínky) a `rezervace.html` (`id="pdDeposit"`) |
 | Koloběžka, pes | `cenik.html` → tabulka „Doplňkové položky“ |
 | Text „od X Kč / den“ na úvodní stránce | `index.html` (dvě místa, hledejte `od 2 290 Kč`) |
 

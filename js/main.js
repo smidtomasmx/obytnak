@@ -140,7 +140,6 @@ function readPrices() {
     seasons, base, tiers,
     deposit: num(($("#pdDeposit") || {}).textContent),
     service: num(($("#pdService") || {}).textContent),
-    km: num(($("#pdKm") || {}).textContent),
   };
 }
 
@@ -382,7 +381,7 @@ function initReservation() {
     sumBox.innerHTML = `<h3>Orientační cena · ${r.days} ${daysWord(r.days)}</h3>
       <ul>${r.lines.map(l => `<li><span>${l.label}</span><span>${l.value < 0 ? "−" : ""}${kc(Math.abs(l.value))}</span></li>`).join("")}</ul>
       <div class="total"><span>Celkem včetně DPH</span><span>${kc(r.total)}</span></div>
-      <small>Všechny ceny jsou včetně DPH. Vratná kauce ${kc(P.deposit)} se hradí při převzetí a do ceny se nezapočítává. V ceně je ${P.km} km/den.</small>`;
+      <small>Všechny ceny jsou včetně DPH. Vratná kauce ${kc(P.deposit)} se hradí při převzetí a do ceny se nezapočítává. V ceně je neomezený nájezd.</small>`;
   };
   form.addEventListener("input", e => { if (e.target.type === "date") pickMsg = ""; });
   form.addEventListener("input", update);
