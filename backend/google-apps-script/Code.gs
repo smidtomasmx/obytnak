@@ -25,7 +25,7 @@ const CONFIG = {
   OWNER_PHONE: '+420 732 574 782',             // uvádí se v e-mailech pro zákazníka
   CALENDAR_ID: '5990ff64f3e5f5f05869d3d0b27516a105001076221c4289f92f6b5cc70f2b26@group.calendar.google.com',
   BRAND: 'Obytňák Vysočina',
-  VEHICLE: 'Forster A 699 HB',
+  VEHICLE: 'Carado A 464',
   SHEET_NAME: 'Poptávky',                      // název listu v Google Tabulce
   TIMEZONE: 'Europe/Prague',
 
