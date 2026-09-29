@@ -380,3 +380,18 @@ details.price-data summary { cursor: pointer; font-weight: 600; color: var(--gre
 details.price-data .table-wrap { margin-top: 12px; box-shadow: none; }
 details.price-data table { min-width: 420px; font-size: .85rem; }
 details.price-data th, details.price-data td { padding: 8px 10px; }
+/* ---- Obchodní podmínky: právní text a FAQ ---- */
+.legal h2 { font-size: 1.35rem; margin-top: 0; }
+.legal h3 { font-size: 1.05rem; color: var(--green-dark); }
+.legal p { color: var(--ink-soft); }
+.legal .panel + .panel { margin-top: 22px; }
+.legal ul.ticks li { color: var(--ink-soft); }
+.legal .intro { background: var(--bg-alt); border-radius: var(--radius); padding: clamp(18px, 3vw, 28px); margin-bottom: 32px; }
+.legal .intro p { color: var(--ink); margin: 0; }
+.faq-item { border-bottom: 1px solid var(--line); padding: 14px 0; }
+.faq-item:first-child { border-top: 1px solid var(--line); }
+.faq-item summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::after { content: "+"; font-size: 1.3rem; font-weight: 400; color: var(--green-dark); flex: none; }
+.faq-item[open] summary::after { content: "–"; }
+.faq-item p { color: var(--ink-soft); margin: 10px 0 0; }

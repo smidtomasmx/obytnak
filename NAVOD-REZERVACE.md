@@ -96,6 +96,22 @@ Jakmile ho vyplníte, poptávky chodí **jen** přes nový systém (FormSubmit s
 Po každé úpravě `Code.gs`: **Nasadit → Spravovat nasazení →** ikona tužky **→ Verze: Nová verze → Nasadit**.
 URL zůstane stejná, `rezervace.html` se měnit nemusí.
 
+## Zálohová faktura (PDF) po potvrzení rezervace
+Když kliknete na **POTVRDIT REZERVACI** v e-mailu, skript kromě zápisu do kalendáře automaticky vygeneruje
+**zálohovou fakturu (PDF)** a pošle ji e-mailem zákazníkovi (záloha 30 % z ceny nájemného, vypočtené ze stejného
+ceníku jako na webu). Fakturační údaje (jméno, IČ, DIČ, adresa, bankovní účet) jsou v `Code.gs` v konstantě
+`SUPPLIER` – při změně sídla, IČ, DIČ nebo čísla účtu upravte **jen tam**. Ceník pro výpočet je v konstantě
+`SEASONS` – musí zůstat stejný jako tabulka Sazby v `cenik.html` a `#priceTable` v `rezervace.html`.
+
+Protože faktura vzniká přes dočasný Google Dokument (vytvoří se, naplní, exportuje do PDF a hned smaže), skript
+teď navíc potřebuje přístup k **Disku a Dokumentům Google**. Po vložení této verze `Code.gs` proto:
+1. V editoru vyberte funkci **setup** a klikněte na **Spustit** – zobrazí se nové okno s žádostí o oprávnění
+   (Disk, Dokumenty), potvrďte stejně jako v Kroku 3.
+2. Vytvořte **novou verzi nasazení** (viz výše), aby ji dostal i běžící Web App.
+3. Vyzkoušejte potvrzením testovací poptávky, že e-mail se zálohovou fakturou (PDF v příloze) dorazil.
+
+Automatické odesílání lze kdykoli vypnout nastavením `SEND_DEPOSIT_INVOICE: false` v `CONFIG`.
+
 ## Bezpečnost a soukromí
 - Web (veřejný JavaScript) obsahuje jen adresu Web Appu. Žádné tokeny, hesla ani klíče.
 - Veřejně dostupné je jen **obsazeno / volno** (období bez jmen, e-mailů, telefonů a poznámek).

@@ -44,7 +44,40 @@ const CONFIG = {
   MAX_TOTAL_PER_HOUR: 40,                      // celkový limit poptávek za hodinu
   NOTIFY_CUSTOMER_ON_REJECT: true,             // poslat zákazníkovi e-mail, když poptávku zamítnete
   NOTIFY_CUSTOMER_ON_CANCEL: true,             // poslat zákazníkovi e-mail, když zrušíte POTVRZENOU rezervaci
+
+  SEND_DEPOSIT_INVOICE: true,                  // po POTVRZENÍ rezervace automaticky vygenerovat a poslat zálohovou fakturu (PDF)
+  DEPOSIT_PERCENT: 0.30,                       // výše zálohy z celkového nájemného (30 %)
+  INVOICE_DUE_BUSINESS_DAYS: 5,                // splatnost zálohové faktury v pracovních dnech od vystavení
 };
+
+/**
+ * Fakturační údaje pronajímatele – jediné místo pro tyto údaje (používá se v zálohové faktuře).
+ * Při změně sídla, IČ, DIČ nebo čísla účtu upravte JEN tady.
+ */
+const SUPPLIER = {
+  name: 'Tomáš Šmíd',
+  addressLine1: 'Nad Cihelnou 663',
+  addressLine2: '582 91 Světlá nad Sázavou',
+  country: 'Česká republika',
+  ic: '87323001',
+  dic: 'CZ9009272129',
+  bankAccount: '1481320017/3030',
+};
+
+/**
+ * Ceník pro výpočet zálohové faktury – MUSÍ být stejný jako tabulka #priceTable v rezervace.html
+ * a tabulka Sazby v cenik.html. Při změně ceny upravte VŠECHNA tři místa.
+ * ranges: pole [MM-DD, MM-DD] období, ve kterých sazba platí (poslední řádek bez "ranges" = výchozí sezóna).
+ */
+const SEASONS = [
+  { name: 'Hlavní sezóna', price: 3990, ranges: [['07-01', '08-31']] },
+  { name: 'Červen', price: 3790, ranges: [['06-01', '06-30']] },
+  { name: 'Květen a září', price: 3490, ranges: [['05-01', '05-31'], ['09-01', '09-30']] },
+  { name: 'Jaro, říjen a Vánoce', price: 2990, ranges: [['02-01', '04-30'], ['10-01', '10-31'], ['12-23', '12-31']] },
+  { name: 'Zima', price: 2290, ranges: null },                 // výchozí sezóna (listopad, 1.–22. 12., leden)
+];
+const PRICE_TIERS = [{ from: 11, discount: 0.10 }, { from: 21, discount: 0.15 }];  // sleva za délku pronájmu
+const SERVICE_FEE = 1500;                                       // jednorázový servisní poplatek (Kč, vč. DPH)
 
 const STATUS = { INQUIRY: 'POPTÁVKA', CONFIRMED: 'POTVRZENO', CANCELLED: 'ZRUŠENO' };
 const COLS = ['ID', 'Vytvořeno', 'Stav', 'Jméno', 'Telefon', 'E-mail', 'Osob', 'Převzetí', 'Vrácení',
@@ -88,6 +121,153 @@ function minDaysFor_(fromYmd) {
   const md = String(fromYmd).slice(5);                       // 'MM-DD'
   const inHigh = CONFIG.HIGH_SEASON.some(function (r) { return md >= r[0] && md <= r[1]; });
   return inHigh ? CONFIG.MIN_DAYS_HIGH_SEASON : CONFIG.MIN_DAYS_OFF_SEASON;
+}
+
+/** Kč -> '3 990 Kč' (stejný formát jako kc() v js/main.js) */
+function czMoney_(n) {
+  return Math.round(n).toLocaleString('cs-CZ').replace(/ /g, ' ') + ' Kč';
+}
+/** Přičte n PRACOVNÍCH dnů (bez svátků, ty se v tomto jednoduchém výpočtu nezohledňují). */
+function addBusinessDays_(d, n) {
+  const x = new Date(d.getTime());
+  let added = 0;
+  while (added < n) {
+    x.setDate(x.getDate() + 1);
+    const dow = x.getDay();                    // 0 = neděle, 6 = sobota
+    if (dow !== 0 && dow !== 6) added++;
+  }
+  return x;
+}
+
+/* ------------------------------ Výpočet ceny pronájmu (pro fakturu) ------------------------------ */
+/** Sezóna platná pro dané datum ('YYYY-MM-DD'). */
+function seasonForDate_(ymd) {
+  const md = String(ymd).slice(5);              // 'MM-DD'
+  for (let i = 0; i < SEASONS.length; i++) {
+    const s = SEASONS[i];
+    if (s.ranges && s.ranges.some(function (r) { return md >= r[0] && md <= r[1]; })) return s;
+  }
+  return SEASONS[SEASONS.length - 1];           // výchozí (bez "ranges")
+}
+/**
+ * Cena pronájmu = půjčovné (dny × sazba sezóny) − sleva za délku + servisní poplatek. Bez DPH navíc,
+ * všechny ceny v SEASONS/SERVICE_FEE jsou už vč. DPH (stejně jako na webu).
+ */
+function calcRentalTotal_(fromYmd, toYmd) {
+  const days = daysBetween_(fromYmd, toYmd) + 1;         // den převzetí i den vrácení se počítají
+  const bySeason = {};                                    // name -> {season, count}
+  let rent = 0;
+  for (let i = 0; i < days; i++) {
+    const s = seasonForDate_(addDaysYmd_(fromYmd, i));
+    rent += s.price;
+    if (!bySeason[s.name]) bySeason[s.name] = { season: s, count: 0 };
+    bySeason[s.name].count++;
+  }
+  const tier = PRICE_TIERS.filter(function (t) { return days >= t.from; }).sort(function (a, b) { return b.discount - a.discount; })[0];
+  const discount = tier ? Math.round(rent * tier.discount) : 0;
+  const lines = [];
+  Object.keys(bySeason).forEach(function (name) {
+    const b = bySeason[name];
+    lines.push({ label: 'Půjčovné – ' + name + ' (' + b.count + ' ' + daysWord_(b.count) + ' × ' + czMoney_(b.season.price) + ')', value: b.count * b.season.price });
+  });
+  if (discount) lines.push({ label: 'Sleva ' + Math.round(tier.discount * 100) + ' % (od ' + tier.from + ' dní)', value: -discount });
+  lines.push({ label: 'Servisní poplatek', value: SERVICE_FEE });
+  const total = lines.reduce(function (sum, l) { return sum + l.value; }, 0);
+  return { days: days, lines: lines, total: total };
+}
+
+/* ==================================== ZÁLOHOVÁ FAKTURA (PDF) ==================================== */
+/** Číslo zálohové faktury odvozené z ID poptávky (jedinečné, bez nutnosti samostatné číselné řady). */
+function invoiceNumber_(id) { return 'ZF' + String(id).replace(/^P/, ''); }
+/** Variabilní symbol pro platbu – české banky přijímají jen ČÍSLO o max. 10 číslicích. */
+function invoiceVs_(id) { return String(id).replace(/\D/g, '').slice(0, 10); }
+
+/**
+ * Vytvoří PDF zálohové faktury přes dočasný Google Dokument (vytvoří ho, naplní, exportuje do PDF
+ * a dokument smaže – v Disku po sobě nenechává žádné trvalé soubory, jen e-mailovou přílohu).
+ */
+function buildDepositInvoicePdf_(o, calc) {
+  const invNo = invoiceNumber_(o.id);
+  const today = new Date();
+  const due = addBusinessDays_(today, CONFIG.INVOICE_DUE_BUSINESS_DAYS);
+  const deposit = Math.round(calc.total * CONFIG.DEPOSIT_PERCENT);
+
+  const doc = DocumentApp.create('TMP-' + invNo);
+  try {
+    const body = doc.getBody();
+    body.setMarginTop(46).setMarginBottom(46).setMarginLeft(56).setMarginRight(56);
+
+    body.appendParagraph('ZÁLOHOVÁ FAKTURA č. ' + invNo).setHeading(DocumentApp.ParagraphHeading.TITLE);
+    body.appendParagraph('(daňový doklad o přijetí zálohy bude vystaven po úhradě)').setItalic(true).setSpacingAfter(14);
+
+    const partiesTable = body.appendTable([
+      ['Dodavatel', 'Odběratel'],
+      [
+        SUPPLIER.name + '\n' + SUPPLIER.addressLine1 + '\n' + SUPPLIER.addressLine2 + '\n' + SUPPLIER.country +
+        '\nIČ: ' + SUPPLIER.ic + '\nDIČ: ' + SUPPLIER.dic,
+        o.name + '\n' + o.phone + '\n' + o.email,
+      ],
+    ]);
+    partiesTable.getRow(0).getCell(0).setBold(true);
+    partiesTable.getRow(0).getCell(1).setBold(true);
+    body.appendParagraph('').setSpacingAfter(6);
+
+    body.appendTable([
+      ['Datum vystavení', Utilities.formatDate(today, tz_(), 'dd.MM.yyyy')],
+      ['Datum splatnosti', Utilities.formatDate(due, tz_(), 'dd.MM.yyyy')],
+      ['Variabilní symbol', invoiceVs_(o.id)],
+      ['Bankovní spojení', SUPPLIER.bankAccount],
+      ['Předmět', 'Záloha na pronájem obytného vozu ' + CONFIG.VEHICLE],
+      ['Termín pronájmu', czDate_(o.from) + ' – ' + czDate_(o.to) + ' (' + calc.days + ' ' + daysWord_(calc.days) + ')'],
+    ]);
+    body.appendParagraph('').setSpacingAfter(10);
+
+    const itemRows = [['Položka', 'Částka']];
+    calc.lines.forEach(function (l) { itemRows.push([l.label, czMoney_(l.value)]); });
+    itemRows.push(['Celkové nájemné (vč. DPH)', czMoney_(calc.total)]);
+    const itemsTable = body.appendTable(itemRows);
+    itemsTable.getRow(0).getCell(0).setBold(true);
+    itemsTable.getRow(0).getCell(1).setBold(true);
+    const lastRow = itemsTable.getRow(itemsTable.getNumRows() - 1);
+    lastRow.getCell(0).setBold(true);
+    lastRow.getCell(1).setBold(true);
+
+    const depPar = body.appendParagraph('K ÚHRADĚ – ZÁLOHA ' + Math.round(CONFIG.DEPOSIT_PERCENT * 100) + ' %: ' + czMoney_(deposit));
+    depPar.setBold(true).setFontSize(14).setSpacingBefore(16);
+
+    body.appendParagraph(
+      'Zálohu prosím uhraďte do data splatnosti na výše uvedený bankovní účet pod uvedeným variabilním symbolem. ' +
+      'Termín pronájmu je pevně rezervovaný až po připsání zálohy na účet a po vrácení jednoho podepsaného výtisku smlouvy o nájmu. ' +
+      'Doplatek nájemného (' + czMoney_(calc.total - deposit) + ') se hradí nejpozději 30 dnů před termínem převzetí vozidla na základě konečné faktury.'
+    ).setSpacingBefore(14);
+
+    body.appendParagraph('Vratná kauce 25 000 Kč se hradí v hotovosti při předání vozidla a není součástí této zálohy.').setSpacingBefore(8);
+
+    doc.saveAndClose();
+    const file = DriveApp.getFileById(doc.getId());
+    const pdf = file.getAs('application/pdf').setName('Zalohova-faktura-' + invNo + '.pdf');
+    file.setTrashed(true);
+    return { blob: pdf, invNo: invNo, vs: invoiceVs_(o.id), deposit: deposit, due: due };
+  } catch (err) {
+    try { DriveApp.getFileById(doc.getId()).setTrashed(true); } catch (e2) { /* ignore */ }
+    throw err;
+  }
+}
+
+/** Sestaví a e-mailem pošle zálohovou fakturu zákazníkovi (PDF příloha), po úspěšném POTVRZENÍ rezervace. */
+function sendDepositInvoice_(o) {
+  const calc = calcRentalTotal_(o.from, o.to);
+  const inv = buildDepositInvoicePdf_(o, calc);
+  const text = 'Dobrý den,\n\nv příloze zasíláme zálohovou fakturu č. ' + inv.invNo + ' k Vaší rezervaci obytného vozu ' + CONFIG.VEHICLE +
+    ' (' + czDate_(o.from) + ' – ' + czDate_(o.to) + ').\n\nK úhradě: ' + czMoney_(inv.deposit) +
+    '\nSplatnost: ' + Utilities.formatDate(inv.due, tz_(), 'dd.MM.yyyy') +
+    '\nBankovní spojení: ' + SUPPLIER.bankAccount + '\nVariabilní symbol: ' + inv.vs +
+    '\n\nTermín je pevně rezervovaný až po připsání zálohy na účet. Kdyby cokoli, volejte ' + CONFIG.OWNER_PHONE +
+    '.\n\nS pozdravem\n' + CONFIG.BRAND;
+  MailApp.sendEmail({
+    to: o.email, subject: 'Zálohová faktura ' + inv.invNo + ' – ' + CONFIG.BRAND, body: text,
+    replyTo: CONFIG.OWNER_EMAIL, name: CONFIG.BRAND, attachments: [inv.blob],
+  });
 }
 
 function escHtml_(s) {
@@ -503,7 +683,12 @@ function adminAction(id, action, token) {
       });
       try { ev.setColor(CalendarApp.EventColor.GREEN); } catch (e) { /* barva není nutná */ }
       setRowFields_(row.rowIndex, { 'Stav': STATUS.CONFIRMED, 'ID události v kalendáři': ev.getId() });
-      mail = function () { try { sendCustomerConfirmed_(o); } catch (e) { console.error(e); } try { sendOwnerConfirmed_(o); } catch (e) { console.error(e); } };
+      mail = function () {
+        try { sendCustomerConfirmed_(o); } catch (e) { console.error(e); }
+        try { sendOwnerConfirmed_(o); } catch (e) { console.error(e); }
+        // Zálohová faktura (PDF) – selhání nesmí zpochybnit už provedené potvrzení rezervace, jen se zaloguje.
+        if (CONFIG.SEND_DEPOSIT_INVOICE) { try { sendDepositInvoice_(o); } catch (e) { console.error('Zálohová faktura: ' + e); } }
+      };
       return { ok: true, message: 'Hotovo. Rezervace je POTVRZENA a zapsána do Google Kalendáře. Zákazník dostane e-mail.' };
     }
 
