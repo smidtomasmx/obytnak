@@ -48,6 +48,10 @@ const CONFIG = {
   SEND_DEPOSIT_INVOICE: true,                  // po POTVRZENÍ rezervace automaticky vygenerovat a poslat zálohovou fakturu (PDF)
   DEPOSIT_PERCENT: 0.30,                       // výše zálohy z celkového nájemného (30 %)
   INVOICE_DUE_BUSINESS_DAYS: 5,                // splatnost zálohové faktury v pracovních dnech od vystavení
+
+  SEND_FINAL_INVOICE: true,                    // automaticky poslat konečnou fakturu (doplatek) před termínem převzetí
+  FINAL_INVOICE_DAYS_BEFORE: 40,               // kolik dní před převzetím pronajímatel konečnou fakturu posílá
+  FINAL_INVOICE_DUE_DAYS_BEFORE: 14,           // do kdy (dní před převzetím) má nájemce doplatek uhradit
 };
 
 /**
@@ -81,7 +85,7 @@ const SERVICE_FEE = 1500;                                       // jednorázový
 
 const STATUS = { INQUIRY: 'POPTÁVKA', CONFIRMED: 'POTVRZENO', CANCELLED: 'ZRUŠENO' };
 const COLS = ['ID', 'Vytvořeno', 'Stav', 'Jméno', 'Telefon', 'E-mail', 'Osob', 'Převzetí', 'Vrácení',
-              'Dní', 'Poznámka', 'ID události v kalendáři', 'Aktualizováno', 'RequestId'];
+              'Dní', 'Poznámka', 'ID události v kalendáři', 'Aktualizováno', 'RequestId', 'Konečná faktura'];
 const COL = COLS.reduce((o, n, i) => { o[n] = i; return o; }, {});
 
 /* ================================ POMOCNÉ FUNKCE ================================ */
@@ -238,7 +242,8 @@ function buildDepositInvoicePdf_(o, calc) {
     body.appendParagraph(
       'Zálohu prosím uhraďte do data splatnosti na výše uvedený bankovní účet pod uvedeným variabilním symbolem. ' +
       'Termín pronájmu je pevně rezervovaný až po připsání zálohy na účet a po vrácení jednoho podepsaného výtisku smlouvy o nájmu. ' +
-      'Doplatek nájemného (' + czMoney_(calc.total - deposit) + ') se hradí nejpozději 30 dnů před termínem převzetí vozidla na základě konečné faktury.'
+      'Doplatek nájemného (' + czMoney_(calc.total - deposit) + ') zašleme formou konečné faktury nejpozději ' + CONFIG.FINAL_INVOICE_DAYS_BEFORE +
+      ' dnů před termínem převzetí vozidla; uhraďte ho prosím nejpozději ' + CONFIG.FINAL_INVOICE_DUE_DAYS_BEFORE + ' dnů před termínem převzetí vozidla.'
     ).setSpacingBefore(14);
 
     body.appendParagraph('Vratná kauce 25 000 Kč se hradí v hotovosti při předání vozidla a není součástí této zálohy.').setSpacingBefore(8);
@@ -258,16 +263,224 @@ function buildDepositInvoicePdf_(o, calc) {
 function sendDepositInvoice_(o) {
   const calc = calcRentalTotal_(o.from, o.to);
   const inv = buildDepositInvoicePdf_(o, calc);
-  const text = 'Dobrý den,\n\nv příloze zasíláme zálohovou fakturu č. ' + inv.invNo + ' k Vaší rezervaci obytného vozu ' + CONFIG.VEHICLE +
+  const attachments = [inv.blob];
+  // Náhled smlouvy o nájmu – chyba při jeho generování nesmí zablokovat odeslání faktury.
+  try { attachments.push(buildContractPreviewPdf_(o, calc)); } catch (e) { console.error('Náhled smlouvy: ' + e); }
+  const text = 'Dobrý den,\n\nv příloze zasíláme zálohovou fakturu č. ' + inv.invNo + ' a náhled smlouvy o nájmu k Vaší rezervaci obytného vozu ' + CONFIG.VEHICLE +
     ' (' + czDate_(o.from) + ' – ' + czDate_(o.to) + ').\n\nK úhradě: ' + czMoney_(inv.deposit) +
     '\nSplatnost: ' + Utilities.formatDate(inv.due, tz_(), 'dd.MM.yyyy') +
     '\nBankovní spojení: ' + SUPPLIER.bankAccount + '\nVariabilní symbol: ' + inv.vs +
-    '\n\nTermín je pevně rezervovaný až po připsání zálohy na účet. Kdyby cokoli, volejte ' + CONFIG.OWNER_PHONE +
+    '\n\nTermín je pevně rezervovaný až po připsání zálohy na účet a po vrácení jednoho podepsaného výtisku smlouvy. Kdyby cokoli, volejte ' + CONFIG.OWNER_PHONE +
     '.\n\nS pozdravem\n' + CONFIG.BRAND;
   MailApp.sendEmail({
     to: o.email, subject: 'Zálohová faktura ' + inv.invNo + ' – ' + CONFIG.BRAND, body: text,
+    replyTo: CONFIG.OWNER_EMAIL, name: CONFIG.BRAND, attachments: attachments,
+  });
+}
+
+/* ==================================== KONEČNÁ FAKTURA (DOPLATEK, PDF) ==================================== */
+/** Číslo konečné faktury odvozené z ID poptávky (KF = konečná faktura, ZF = zálohová). */
+function invoiceNumberFinal_(id) { return 'KF' + String(id).replace(/^P/, ''); }
+
+/** Stejná stavba jako zálohová faktura, ale ukazuje už zaplacenou zálohu a doplatek (zbývajících 70 %). */
+function buildFinalInvoicePdf_(o, calc) {
+  const invNo = invoiceNumberFinal_(o.id);
+  const today = new Date();
+  const due = addDays_(parseYmd_(o.from), -CONFIG.FINAL_INVOICE_DUE_DAYS_BEFORE);
+  const deposit = Math.round(calc.total * CONFIG.DEPOSIT_PERCENT);
+  const rest = calc.total - deposit;
+
+  const doc = DocumentApp.create('TMP-' + invNo);
+  try {
+    const body = doc.getBody();
+    body.setMarginTop(46).setMarginBottom(46).setMarginLeft(56).setMarginRight(56);
+
+    body.appendParagraph('KONEČNÁ FAKTURA č. ' + invNo).setHeading(DocumentApp.ParagraphHeading.TITLE);
+    body.appendParagraph('(doplatek nájemného – záloha 30 % byla uhrazena samostatnou zálohovou fakturou)').setItalic(true).setSpacingAfter(14);
+
+    const partiesTable = body.appendTable([
+      ['Dodavatel', 'Odběratel'],
+      [
+        SUPPLIER.name + '\n' + SUPPLIER.addressLine1 + '\n' + SUPPLIER.addressLine2 + '\n' + SUPPLIER.country +
+        '\nIČ: ' + SUPPLIER.ic + '\nDIČ: ' + SUPPLIER.dic,
+        o.name + '\n' + o.phone + '\n' + o.email,
+      ],
+    ]);
+    partiesTable.getRow(0).getCell(0).setBold(true);
+    partiesTable.getRow(0).getCell(1).setBold(true);
+    body.appendParagraph('').setSpacingAfter(6);
+
+    body.appendTable([
+      ['Datum vystavení', Utilities.formatDate(today, tz_(), 'dd.MM.yyyy')],
+      ['Datum splatnosti', Utilities.formatDate(due, tz_(), 'dd.MM.yyyy')],
+      ['Variabilní symbol', invoiceVs_(o.id)],
+      ['Bankovní spojení', SUPPLIER.bankAccount],
+      ['Předmět', 'Doplatek nájemného za pronájem obytného vozu ' + CONFIG.VEHICLE],
+      ['Termín pronájmu', czDate_(o.from) + ' – ' + czDate_(o.to) + ' (' + calc.days + ' ' + daysWord_(calc.days) + ')'],
+    ]);
+    body.appendParagraph('').setSpacingAfter(10);
+
+    const itemRows = [['Položka', 'Částka']];
+    calc.lines.forEach(function (l) { itemRows.push([l.label, czMoney_(l.value)]); });
+    itemRows.push(['Celkové nájemné (vč. DPH)', czMoney_(calc.total)]);
+    itemRows.push(['Uhrazená záloha (30 %)', '– ' + czMoney_(deposit)]);
+    const itemsTable = body.appendTable(itemRows);
+    itemsTable.getRow(0).getCell(0).setBold(true);
+    itemsTable.getRow(0).getCell(1).setBold(true);
+
+    const depPar = body.appendParagraph('K ÚHRADĚ – DOPLATEK: ' + czMoney_(rest));
+    depPar.setBold(true).setFontSize(14).setSpacingBefore(16);
+
+    body.appendParagraph(
+      'Doplatek prosím uhraďte do data splatnosti na výše uvedený bankovní účet pod uvedeným variabilním symbolem, nejpozději však při předání vozidla.'
+    ).setSpacingBefore(14);
+    body.appendParagraph('Servisní poplatek 1 500 Kč (účtuje se při pronájmu do 7 dnů) a vratná kauce 25 000 Kč se hradí v hotovosti při předání vozidla a nejsou součástí této faktury.').setSpacingBefore(8);
+
+    doc.saveAndClose();
+    const file = DriveApp.getFileById(doc.getId());
+    const pdf = file.getAs('application/pdf').setName('Konecna-faktura-' + invNo + '.pdf');
+    file.setTrashed(true);
+    return { blob: pdf, invNo: invNo, vs: invoiceVs_(o.id), rest: rest, due: due };
+  } catch (err) {
+    try { DriveApp.getFileById(doc.getId()).setTrashed(true); } catch (e2) { /* ignore */ }
+    throw err;
+  }
+}
+
+/** Sestaví a e-mailem pošle konečnou fakturu (doplatek) zákazníkovi, PDF příloha. */
+function sendFinalInvoice_(o) {
+  const calc = calcRentalTotal_(o.from, o.to);
+  const inv = buildFinalInvoicePdf_(o, calc);
+  const text = 'Dobrý den,\n\nv příloze zasíláme konečnou fakturu č. ' + inv.invNo + ' k Vaší rezervaci obytného vozu ' + CONFIG.VEHICLE +
+    ' (' + czDate_(o.from) + ' – ' + czDate_(o.to) + ').\n\nK úhradě (doplatek): ' + czMoney_(inv.rest) +
+    '\nSplatnost: ' + Utilities.formatDate(inv.due, tz_(), 'dd.MM.yyyy') +
+    '\nBankovní spojení: ' + SUPPLIER.bankAccount + '\nVariabilní symbol: ' + inv.vs +
+    '\n\nServisní poplatek a vratnou kauci hradíte v hotovosti až při předání vozidla. Kdyby cokoli, volejte ' + CONFIG.OWNER_PHONE +
+    '.\n\nS pozdravem\n' + CONFIG.BRAND;
+  MailApp.sendEmail({
+    to: o.email, subject: 'Konečná faktura ' + inv.invNo + ' – ' + CONFIG.BRAND, body: text,
     replyTo: CONFIG.OWNER_EMAIL, name: CONFIG.BRAND, attachments: [inv.blob],
   });
+}
+
+/**
+ * Denní úloha (spouští ji časový spouštěč vytvořený funkcí setup()). Najde POTVRZENÉ rezervace,
+ * jejichž den převzetí je přesně za CONFIG.FINAL_INVOICE_DAYS_BEFORE dní, a pokud jim ještě nebyla
+ * poslána konečná faktura, pošle ji a řádek označí (sloupec "Konečná faktura"), aby se neposlala dvakrát.
+ */
+function sendDueFinalInvoices_() {
+  if (!CONFIG.SEND_FINAL_INVOICE) return;
+  const targetYmd = addDaysYmd_(todayYmd_(), CONFIG.FINAL_INVOICE_DAYS_BEFORE);
+  readRows_().forEach(function (r) {
+    const o = rowToObj_(r);
+    if (o.status !== STATUS.CONFIRMED) return;
+    if (o.from !== targetYmd) return;
+    if (String(r.v[COL['Konečná faktura']] || '')) return;   // už poslána
+    try {
+      sendFinalInvoice_(o);
+      setRowFields_(r.rowIndex, { 'Konečná faktura': Utilities.formatDate(new Date(), tz_(), 'dd.MM.yyyy HH:mm:ss') });
+    } catch (err) {
+      console.error('Konečná faktura (' + o.id + '): ' + err);
+    }
+  });
+}
+
+/* ================================ NÁHLED SMLOUVY O NÁJMU (PDF) ================================ */
+/**
+ * Text smlouvy MUSÍ zůstat stejný jako dokumenty v dokumenty/Smlouva-o-najmu-obytneho-vozu.docx/.pdf
+ * (ty jsou určené k tisku a podpisu). Tohle je jen automaticky generovaný NÁHLED přiložený k zálohové
+ * faktuře – jméno, telefon, e-mail, termín a cenu nájemce zná už z rezervace, tak jsou předvyplněné.
+ * Datum narození, doklady a adresu nájemce doplní ručně do podepisovaného vyhotovení.
+ */
+function ct_(body, text) { const p = body.appendParagraph(text); p.setFontSize(10).setSpacingAfter(6); return p; }
+function ctH_(body, text) { const p = body.appendParagraph(text); p.setBold(true).setFontSize(12).setForegroundColor('#237A34').setSpacingBefore(14).setSpacingAfter(4); return p; }
+function ctB_(body, text) { const p = body.appendParagraph('•  ' + text); p.setFontSize(10).setIndentStart(18).setSpacingAfter(4); return p; }
+
+function buildContractPreviewPdf_(o, calc) {
+  const deposit = Math.round(calc.total * CONFIG.DEPOSIT_PERCENT);
+  const doc = DocumentApp.create('TMP-SMLOUVA-' + o.id);
+  try {
+    const body = doc.getBody();
+    body.setMarginTop(46).setMarginBottom(46).setMarginLeft(56).setMarginRight(56);
+
+    const title = body.appendParagraph('SMLOUVA O NÁJMU DOPRAVNÍHO PROSTŘEDKU');
+    title.setHeading(DocumentApp.ParagraphHeading.TITLE).setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+    const sub = body.appendParagraph('NÁHLED – pronájem obytného vozu ' + CONFIG.VEHICLE);
+    sub.setItalic(true).setAlignment(DocumentApp.HorizontalAlignment.CENTER).setSpacingAfter(4);
+    const sub2 = body.appendParagraph('Toto je informativní náhled smlouvy k rezervaci ' + o.id + '. Konečné znění k podpisu s doplněnými osobními údaji obdržíte od pronajímatele.');
+    sub2.setItalic(true).setFontSize(9).setForegroundColor('#4A5A51').setAlignment(DocumentApp.HorizontalAlignment.CENTER).setSpacingAfter(14);
+
+    ctH_(body, 'Smluvní strany');
+    ct_(body, 'Pronajímatel: ' + SUPPLIER.name + ', ' + SUPPLIER.addressLine1 + ', ' + SUPPLIER.addressLine2 + ', ' + SUPPLIER.country +
+      ', IČ: ' + SUPPLIER.ic + ', DIČ: ' + SUPPLIER.dic + ', tel. ' + CONFIG.OWNER_PHONE + ', e-mail ' + CONFIG.OWNER_EMAIL + '.');
+    ct_(body, 'Nájemce: ' + o.name + ', tel. ' + o.phone + ', e-mail ' + o.email + ' (datum narození, číslo dokladu a adresu nájemce doplní pronajímatel do vyhotovení k podpisu).');
+
+    ctH_(body, 'I. Předmět nájmu');
+    ct_(body, 'Pronajímatel je vlastníkem a provozovatelem obytného vozu ' + CONFIG.VEHICLE + ' (dále jen „vozidlo“), včetně standardní výbavy uvedené v předávacím protokolu.');
+
+    ctH_(body, 'II. Doba a místo nájmu');
+    ct_(body, 'Doba nájmu: ' + czDate_(o.from) + ' 7:00 hod – ' + czDate_(o.to) + ' 17:00 hod (' + calc.days + ' ' + daysWord_(calc.days) + ').');
+    ct_(body, 'Místo předání a vrácení: ' + SUPPLIER.addressLine1 + ', ' + SUPPLIER.addressLine2 + ', nebo jiné dohodnuté místo. Předání a seznámení s vozidlem trvá přibližně 60 minut.');
+
+    ctH_(body, 'III. Řidič a podmínky užívání');
+    ctB_(body, 'Vozidlo smí řídit nájemce nebo jím určená osoba starší 21 let s řidičským oprávněním skupiny B po dobu nejméně 2 let.');
+    ctB_(body, 'Při převzetí vozidla je nutné předložit 2 platné doklady totožnosti (OP, ŘP, PAS).');
+    ctB_(body, 'Nájemce plně odpovídá za přepravované osoby i náklad.');
+
+    ctH_(body, 'IV. Nájemné a platební podmínky');
+    ct_(body, 'Nájemné za sjednanou dobu činí celkem ' + czMoney_(calc.total) + ' vč. DPH (servisní poplatek a případné doplňky jsou součástí).');
+    ct_(body, 'Záloha ve výši 30 % (' + czMoney_(deposit) + ') se hradí na základě přiložené zálohové faktury do 5 pracovních dnů od jejího vystavení; termín je závazně rezervován až po připsání zálohy a doručení jednoho podepsaného vyhotovení této smlouvy.');
+    ct_(body, 'Doplatek nájemného (' + czMoney_(calc.total - deposit) + ') zašle pronajímatel formou konečné faktury nejpozději ' + CONFIG.FINAL_INVOICE_DAYS_BEFORE + ' dnů před převzetím; nájemce jej uhradí nejpozději ' + CONFIG.FINAL_INVOICE_DUE_DAYS_BEFORE + ' dnů před převzetím vozidla.');
+    ct_(body, 'Servisní poplatek 1 500 Kč vč. DPH (jen při pronájmu do 7 dnů) se hradí v hotovosti při předání vozidla.');
+
+    ctH_(body, 'V. Kauce');
+    ct_(body, 'Při předání vozidla skládá nájemce vratnou kauci 25 000 Kč v hotovosti, určenou na škody nekryté pojištěním, neodstranitelné znečištění a poškození vozidla. Přesáhne-li škoda výši kauce, bude částka přesahující kauci na nájemci vymáhána v plné výši.');
+
+    ctH_(body, 'VI. Pojištění');
+    ct_(body, 'Vozidlo je pojištěno povinným ručením a havarijním pojištěním se spoluúčastí 10 %, min. 10 000 Kč, kterou hradí nájemce při zaviněné pojistné události.');
+
+    ctH_(body, 'VII. Povinnosti nájemce při užívání vozidla');
+    ctB_(body, 'Zakázány jsou jakékoliv úpravy vozidla, kouření (i el. cigaret), otevřený oheň a přeprava PHM v nádobách.');
+    ctB_(body, 'Mimo určená místa je zakázáno převážet kola, lyže a předměty ohrožující vnitřní vybavení.');
+    ctB_(body, 'Do chemického WC patří jen toaletní papír pro eko WC; WC se nesmí používat bez chemie.');
+    ctB_(body, 'Přeprava domácích zvířat ve vozidle je zakázána.');
+    ctB_(body, 'Opravy a náhradní díly jen se souhlasem pronajímatele; poškození pneumatiky/disku hradí nájemce v plné výši.');
+
+    ctH_(body, 'VIII. Předání a vrácení vozidla');
+    ct_(body, 'Vozidlo se předává i vrací uklizené, s vyprázdněnou kazetou WC a plnou nádrží nafty (bionafta zakázána). Neuklizené vrácení: pokuta 2 000 Kč, při znečištění olejem/barvou/krví 5 000 Kč.');
+    ct_(body, 'Škody či opotřebení během cesty se hlásí neprodleně na tel. 605 357 011, 732 574 782, i pokud brání dalšímu pronájmu.');
+
+    ctH_(body, 'IX. Servisní poplatek zahrnuje');
+    ctB_(body, 'vyčištění interiéru a umytí exteriéru;');
+    ctB_(body, '2 plynové lahve (jedna plná, druhá zůstatková) – další spotřebu si nájemce doplňuje sám; ztráta redukce na plyn se účtuje zvlášť;');
+    ctB_(body, 'čistá prostěradla, chemii do WC a na nádobí, doplnění provozních kapalin, přípravu vozidla a asistenční službu.');
+
+    ctH_(body, 'X. Porucha, nehoda a škodní událost');
+    ct_(body, 'Poruchu i škodní událost je nutné neprodleně nahlásit pronajímateli; při nehodě přivolat i Policii ČR a pořídit fotodokumentaci.');
+
+    ctH_(body, 'XI. Sankce');
+    ctB_(body, 'Ztráta klíčů, OTP nebo zelené karty: 10 000 Kč.');
+    ctB_(body, 'Hrubě znečištěné vozidlo: 5 000 Kč.');
+    ctB_(body, 'Pozdní vrácení: 10 000 Kč za každých započatých 24 hodin.');
+
+    ctH_(body, 'XII. Odstoupení od smlouvy a storno podmínky');
+    ct_(body, 'Storno poplatek z ceny nájemného: 20 % (60+ dní předem), 50 % (30+ dní), 80 % (15+ dní), 90 % (14 a méně dní), 100 % (7 a méně dní nebo nepřevzetí vozidla). Nespotřebovaná část nájemného se při předčasném ukončení nevrací.');
+
+    ctH_(body, 'XIII. Ochrana osobních údajů');
+    ct_(body, 'Osobní údaje nájemce zpracovává pronajímatel jen za účelem plnění této smlouvy a zákonných povinností, v souladu s GDPR.');
+
+    ctH_(body, 'XIV. Závěrečná ustanovení');
+    ct_(body, 'Smlouva se řídí občanským zákoníkem (§ 2321 a násl.). Nedílnou součástí je obchodní podmínky pronajímatele, se kterými nájemce podpisem vyjadřuje souhlas. Neplatnost jednotlivého ustanovení nemá vliv na platnost ostatních (salvátorská klauzule). Spory řeší obecné soudy ČR dle sídla pronajímatele.');
+
+    doc.saveAndClose();
+    const file = DriveApp.getFileById(doc.getId());
+    const pdf = file.getAs('application/pdf').setName('Smlouva-nahled-' + o.id + '.pdf');
+    file.setTrashed(true);
+    return pdf;
+  } catch (err) {
+    try { DriveApp.getFileById(doc.getId()).setTrashed(true); } catch (e2) { /* ignore */ }
+    throw err;
+  }
 }
 
 function escHtml_(s) {
@@ -328,6 +541,10 @@ function ensureSheet_(ss) {
   if (sh.getLastRow() === 0) {
     sh.getRange(1, 1, 1, COLS.length).setValues([COLS]).setFontWeight('bold');
     sh.setFrozenRows(1);
+  } else if (sh.getLastColumn() < COLS.length) {
+    // existující tabulka z dřívější verze skriptu – doplní chybějící sloupce (např. "Konečná faktura") na konec záhlaví
+    const have = sh.getLastColumn();
+    sh.getRange(1, have + 1, 1, COLS.length - have).setValues([COLS.slice(have)]).setFontWeight('bold');
   }
   // telefon a data ukládat jako čistý text (bez převodu na čísla/data)
   [COL['Telefon'], COL['Převzetí'], COL['Vrácení'], COL['ID'], COL['RequestId']].forEach(function (c) {
@@ -731,8 +948,17 @@ function setup() {
   ensureSheet_(ss);
   calendar_();                 // vyhodí chybu, pokud k němu nemáte přístup
   selfTest_();
+  ensureDailyTrigger_();
   Logger.log('SETUP OK. Tabulka: ' + ss.getUrl() + ' | Zbývající denní kvóta e-mailů: ' + MailApp.getRemainingDailyQuota());
   return 'SETUP OK';
+}
+
+/** Vytvoří (pokud ještě neexistuje) denní časový spouštěč pro odesílání konečných faktur. */
+function ensureDailyTrigger_() {
+  const exists = ScriptApp.getProjectTriggers().some(function (t) {
+    return t.getHandlerFunction() === 'sendDueFinalInvoices_' && t.getEventType() === ScriptApp.EventType.CLOCK;
+  });
+  if (!exists) ScriptApp.newTrigger('sendDueFinalInvoices_').timeBased().everyDays(1).atHour(8).create();
 }
 
 /** Ověří, že vytvořená celodenní událost se čte zpět jako správné období [začátek, konec). */

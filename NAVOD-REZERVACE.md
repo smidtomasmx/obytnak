@@ -98,10 +98,13 @@ URL zůstane stejná, `rezervace.html` se měnit nemusí.
 
 ## Zálohová faktura (PDF) po potvrzení rezervace
 Když kliknete na **POTVRDIT REZERVACI** v e-mailu, skript kromě zápisu do kalendáře automaticky vygeneruje
-**zálohovou fakturu (PDF)** a pošle ji e-mailem zákazníkovi (záloha 30 % z ceny nájemného, vypočtené ze stejného
-ceníku jako na webu). Fakturační údaje (jméno, IČ, DIČ, adresa, bankovní účet) jsou v `Code.gs` v konstantě
+**zálohovou fakturu (PDF)** a **náhled smlouvy o nájmu (PDF)** a pošle obě e-mailem zákazníkovi jako přílohy
+(záloha 30 % z ceny nájemného, vypočtené ze stejného ceníku jako na webu; náhled smlouvy má předvyplněné jméno,
+telefon, e-mail, termín a cenu z rezervace – datum narození, doklady a adresu nájemce doplní pronajímatel do
+vyhotovení k podpisu). Fakturační údaje (jméno, IČ, DIČ, adresa, bankovní účet) jsou v `Code.gs` v konstantě
 `SUPPLIER` – při změně sídla, IČ, DIČ nebo čísla účtu upravte **jen tam**. Ceník pro výpočet je v konstantě
-`SEASONS` – musí zůstat stejný jako tabulka Sazby v `cenik.html` a `#priceTable` v `rezervace.html`.
+`SEASONS` – musí zůstat stejný jako tabulka Sazby v `cenik.html` a `#priceTable` v `rezervace.html`. Text
+náhledu smlouvy (funkce `buildContractPreviewPdf_`) musí zůstat stejný jako `dokumenty/Smlouva-o-najmu-obytneho-vozu.docx`/`.pdf` – při úpravě smlouvy upravte **obě místa**.
 
 Protože faktura vzniká přes dočasný Google Dokument (vytvoří se, naplní, exportuje do PDF a hned smaže), skript
 teď navíc potřebuje přístup k **Disku a Dokumentům Google**. Po vložení této verze `Code.gs` proto:
@@ -111,6 +114,18 @@ teď navíc potřebuje přístup k **Disku a Dokumentům Google**. Po vložení 
 3. Vyzkoušejte potvrzením testovací poptávky, že e-mail se zálohovou fakturou (PDF v příloze) dorazil.
 
 Automatické odesílání lze kdykoli vypnout nastavením `SEND_DEPOSIT_INVOICE: false` v `CONFIG`.
+
+## Konečná faktura (doplatek) – 40 dní před převzetím
+Funkce **setup** teď navíc vytvoří denní časový spouštěč (Nasadit se pro to nemusí nic zvlášť dělat, stačí
+znovu spustit `setup`, viz krok 1 výše). Každý den v 8:00 skript zkontroluje POTVRZENÉ rezervace, jejichž
+termín převzetí je přesně za `CONFIG.FINAL_INVOICE_DAYS_BEFORE` dní (výchozí 40), a pokud jim ještě
+neposlal konečnou fakturu, vygeneruje PDF s doplatkem (celkové nájemné − už zaplacená záloha) a pošle ho
+zákazníkovi e-mailem. Splatnost doplatku je `CONFIG.FINAL_INVOICE_DUE_DAYS_BEFORE` dní před převzetím
+(výchozí 14). Aby se faktura neposlala dvakrát, zapíše se datum odeslání do sloupce **Konečná faktura**
+v Google Tabulce (skript ho tam při prvním spuštění `setup` sám doplní).
+
+Spouštěč uvidíte a případně smažete v editoru vlevo pod ikonou hodin (**Triggery**). Automatické odesílání
+lze vypnout nastavením `SEND_FINAL_INVOICE: false` v `CONFIG` (spouštěč pak jen nic neudělá, mazat ho nemusíte).
 
 ## Bezpečnost a soukromí
 - Web (veřejný JavaScript) obsahuje jen adresu Web Appu. Žádné tokeny, hesla ani klíče.
