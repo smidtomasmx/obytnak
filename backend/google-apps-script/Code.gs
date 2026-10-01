@@ -52,6 +52,10 @@ const CONFIG = {
   SEND_FINAL_INVOICE: true,                    // automaticky poslat konečnou fakturu (doplatek) před termínem převzetí
   FINAL_INVOICE_DAYS_BEFORE: 40,               // kolik dní před převzetím pronajímatel konečnou fakturu posílá
   FINAL_INVOICE_DUE_DAYS_BEFORE: 14,           // do kdy (dní před převzetím) má nájemce doplatek uhradit
+
+  FULL_PAYMENT_THRESHOLD_DAYS: 14,             // potvrzení "na poslední chvíli": je-li do převzetí tolik dní
+                                                // nebo méně, nájemce rovnou platí celé nájemné najednou
+                                                // (na zálohu + samostatný doplatek už není reálný čas)
 };
 
 /**
@@ -194,14 +198,18 @@ function nextDocNumber_(kind) {
 }
 
 /**
- * Vytvoří PDF výzvy k úhradě zálohy přes dočasný Google Dokument (vytvoří ho, naplní, exportuje do PDF
- * a dokument smaže – v Disku po sobě nenechává žádné trvalé soubory, jen e-mailovou přílohu).
+ * Vytvoří PDF výzvy k úhradě (zálohy, nebo při pozdním potvrzení celé částky) přes dočasný Google
+ * Dokument (vytvoří ho, naplní, exportuje do PDF a dokument smaže – v Disku po sobě nenechává žádné
+ * trvalé soubory, jen e-mailovou přílohu). percent = 1 znamená úhradu celého nájemného najednou.
  */
-function buildDepositInvoicePdf_(o, calc) {
+function buildPaymentNoticePdf_(o, calc, percent) {
+  const isFull = percent >= 1;
   const docNo = nextDocNumber_('deposit');
   const today = new Date();
-  const due = addBusinessDays_(today, CONFIG.INVOICE_DUE_BUSINESS_DAYS);
-  const deposit = Math.round(calc.total * CONFIG.DEPOSIT_PERCENT);
+  let due = addBusinessDays_(today, CONFIG.INVOICE_DUE_BUSINESS_DAYS);
+  const dayBeforePickup = addDays_(parseYmd_(o.from), -1);
+  if (due > dayBeforePickup) due = dayBeforePickup;   // splatnost nikdy později než den před převzetím
+  const amount = Math.round(calc.total * percent);
   const paymentNote = o.name + ', ' + czDate_(o.from) + '–' + czDate_(o.to);   // do poznámky k platbě: jméno a termín zápůjčky
 
   const doc = DocumentApp.create('TMP-ZAL-' + docNo);
@@ -209,10 +217,10 @@ function buildDepositInvoicePdf_(o, calc) {
     const body = doc.getBody();
     body.setMarginTop(46).setMarginBottom(46).setMarginLeft(56).setMarginRight(56);
 
-    body.appendParagraph('VÝZVA K ÚHRADĚ ZÁLOHY č. ' + docNo).setHeading(DocumentApp.ParagraphHeading.TITLE);
+    body.appendParagraph((isFull ? 'VÝZVA K ÚHRADĚ č. ' : 'VÝZVA K ÚHRADĚ ZÁLOHY č. ') + docNo).setHeading(DocumentApp.ParagraphHeading.TITLE);
     const taxNote = body.appendParagraph('NEDAŇOVÝ DOKLAD');
     taxNote.setBold(true).setFontSize(11).setForegroundColor('#B3261E').setSpacingAfter(2);
-    body.appendParagraph('Tento doklad nemá charakter daňového dokladu. Daňový doklad o přijetí zálohy bude vystaven po úhradě.').setItalic(true).setSpacingAfter(14);
+    body.appendParagraph('Tento doklad nemá charakter daňového dokladu. Daňový doklad bude vystaven po úhradě.').setItalic(true).setSpacingAfter(14);
 
     const partiesTable = body.appendTable([
       ['Dodavatel', 'Odběratel'],
@@ -231,7 +239,7 @@ function buildDepositInvoicePdf_(o, calc) {
       ['Datum splatnosti', Utilities.formatDate(due, tz_(), 'dd.MM.yyyy')],
       ['Do poznámky k platbě uveďte', paymentNote],
       ['Bankovní spojení', SUPPLIER.bankAccount],
-      ['Předmět', 'Záloha na pronájem obytného vozu ' + CONFIG.VEHICLE],
+      ['Předmět', (isFull ? 'Nájemné' : 'Záloha na pronájem') + ' obytného vozu ' + CONFIG.VEHICLE],
       ['Termín pronájmu', czDate_(o.from) + ' – ' + czDate_(o.to) + ' (' + calc.days + ' ' + daysWord_(calc.days) + ')'],
     ]);
     body.appendParagraph('').setSpacingAfter(10);
@@ -246,48 +254,63 @@ function buildDepositInvoicePdf_(o, calc) {
     lastRow.getCell(0).setBold(true);
     lastRow.getCell(1).setBold(true);
 
-    const depPar = body.appendParagraph('K ÚHRADĚ – ZÁLOHA ' + Math.round(CONFIG.DEPOSIT_PERCENT * 100) + ' %: ' + czMoney_(deposit));
+    const depPar = body.appendParagraph(isFull ? 'K ÚHRADĚ – CELÉ NÁJEMNÉ: ' + czMoney_(amount) : 'K ÚHRADĚ – ZÁLOHA ' + Math.round(percent * 100) + ' %: ' + czMoney_(amount));
     depPar.setBold(true).setFontSize(14).setSpacingBefore(16);
 
-    body.appendParagraph(
-      'Zálohu prosím uhraďte do data splatnosti na výše uvedený bankovní účet. Do zprávy pro příjemce / poznámky k platbě uveďte prosím ' +
+    const payParts = [
+      (isFull ? 'Nájemné' : 'Zálohu') + ' prosím uhraďte do data splatnosti na výše uvedený bankovní účet. Do zprávy pro příjemce / poznámky k platbě uveďte prosím ' +
       'své jméno a příjmení a termín zápůjčky (' + paymentNote + '), ať platbu snadno spárujeme. ' +
-      'Termín pronájmu je pevně rezervovaný až po připsání zálohy na účet a po vrácení jednoho podepsaného výtisku smlouvy o nájmu. ' +
-      'Doplatek nájemného (' + czMoney_(calc.total - deposit) + ') zašleme nejpozději ' + CONFIG.FINAL_INVOICE_DAYS_BEFORE +
-      ' dnů před termínem převzetí vozidla; uhraďte ho prosím nejpozději ' + CONFIG.FINAL_INVOICE_DUE_DAYS_BEFORE + ' dnů před termínem převzetí vozidla.'
-    ).setSpacingBefore(14);
+      'Termín pronájmu je pevně rezervovaný až po připsání platby na účet a po vrácení jednoho podepsaného výtisku smlouvy o nájmu.',
+    ];
+    if (isFull) {
+      payParts.push('Termín převzetí je už za méně než ' + CONFIG.FULL_PAYMENT_THRESHOLD_DAYS + ' dní, proto se nájemné hradí najednou v plné výši – zálohu ani doplatek už neúčtujeme zvlášť.');
+    } else {
+      payParts.push('Doplatek nájemného (' + czMoney_(calc.total - amount) + ') zašleme nejpozději ' + CONFIG.FINAL_INVOICE_DAYS_BEFORE +
+        ' dnů před termínem převzetí vozidla; uhraďte ho prosím nejpozději ' + CONFIG.FINAL_INVOICE_DUE_DAYS_BEFORE + ' dnů před termínem převzetí vozidla.');
+    }
+    body.appendParagraph(payParts.join(' ')).setSpacingBefore(14);
 
-    body.appendParagraph('Vratná kauce 25 000 Kč se hradí v hotovosti při předání vozidla a není součástí této zálohy.').setSpacingBefore(8);
+    body.appendParagraph('Vratná kauce 25 000 Kč se hradí v hotovosti při předání vozidla a není součástí této platby.').setSpacingBefore(8);
 
     doc.saveAndClose();
     const file = DriveApp.getFileById(doc.getId());
-    const pdf = file.getAs('application/pdf').setName('Vyzva-k-uhrade-zalohy-' + docNo + '.pdf');
+    const pdf = file.getAs('application/pdf').setName((isFull ? 'Vyzva-k-uhrade-' : 'Vyzva-k-uhrade-zalohy-') + docNo + '.pdf');
     file.setTrashed(true);
-    return { blob: pdf, docNo: docNo, deposit: deposit, due: due };
+    return { blob: pdf, docNo: docNo, amount: amount, due: due, isFull: isFull };
   } catch (err) {
     try { DriveApp.getFileById(doc.getId()).setTrashed(true); } catch (e2) { /* ignore */ }
     throw err;
   }
 }
 
-/** Sestaví a e-mailem pošle výzvu k úhradě zálohy zákazníkovi (PDF příloha), po úspěšném POTVRZENÍ rezervace. */
+/**
+ * Sestaví a e-mailem pošle výzvu k úhradě zákazníkovi (PDF příloha), po úspěšném POTVRZENÍ rezervace.
+ * Je-li termín převzetí už za CONFIG.FULL_PAYMENT_THRESHOLD_DAYS dní nebo méně (pozdě potvrzená
+ * rezervace), pošle se rovnou výzva na CELOU částku místo zálohy – na rozdělení na zálohu/doplatek
+ * už není reálný čas, a konečná faktura se pak touto rezervací vůbec nezabývá (viz sendDueFinalInvoices_).
+ */
 function sendDepositInvoice_(o) {
   const calc = calcRentalTotal_(o.from, o.to);
-  const inv = buildDepositInvoicePdf_(o, calc);
+  const daysLeft = daysBetween_(todayYmd_(), o.from);
+  const isFull = daysLeft <= CONFIG.FULL_PAYMENT_THRESHOLD_DAYS;
+  const inv = buildPaymentNoticePdf_(o, calc, isFull ? 1 : CONFIG.DEPOSIT_PERCENT);
   const attachments = [inv.blob];
   // Náhled smlouvy o nájmu – chyba při jeho generování nesmí zablokovat odeslání výzvy k úhradě.
   try { attachments.push(buildContractPreviewPdf_(o, calc)); } catch (e) { console.error('Náhled smlouvy: ' + e); }
   const paymentNote = o.name + ', ' + czDate_(o.from) + '–' + czDate_(o.to);
-  const text = 'Dobrý den,\n\nv příloze zasíláme výzvu k úhradě zálohy č. ' + inv.docNo + ' (nedaňový doklad) a náhled smlouvy o nájmu k Vaší rezervaci obytného vozu ' + CONFIG.VEHICLE +
-    ' (' + czDate_(o.from) + ' – ' + czDate_(o.to) + ').\n\nK úhradě: ' + czMoney_(inv.deposit) +
+  const text = 'Dobrý den,\n\nv příloze zasíláme výzvu k úhradě' + (inv.isFull ? ' celého nájemného' : ' zálohy') + ' č. ' + inv.docNo +
+    ' (nedaňový doklad) a náhled smlouvy o nájmu k Vaší rezervaci obytného vozu ' + CONFIG.VEHICLE +
+    ' (' + czDate_(o.from) + ' – ' + czDate_(o.to) + ').\n\nK úhradě: ' + czMoney_(inv.amount) +
     '\nSplatnost: ' + Utilities.formatDate(inv.due, tz_(), 'dd.MM.yyyy') +
     '\nBankovní spojení: ' + SUPPLIER.bankAccount + '\nDo zprávy pro příjemce / poznámky k platbě uveďte: ' + paymentNote +
-    '\n\nTermín je pevně rezervovaný až po připsání zálohy na účet a po vrácení jednoho podepsaného výtisku smlouvy. Kdyby cokoli, volejte ' + CONFIG.OWNER_PHONE +
+    (inv.isFull ? '\n\nTermín převzetí je už za méně než ' + CONFIG.FULL_PAYMENT_THRESHOLD_DAYS + ' dní, proto se hradí celé nájemné najednou.' : '') +
+    '\n\nTermín je pevně rezervovaný až po připsání platby na účet a po vrácení jednoho podepsaného výtisku smlouvy. Kdyby cokoli, volejte ' + CONFIG.OWNER_PHONE +
     '.\n\nS pozdravem\n' + CONFIG.BRAND;
   MailApp.sendEmail({
-    to: o.email, subject: 'Výzva k úhradě zálohy č. ' + inv.docNo + ' – ' + CONFIG.BRAND, body: text,
+    to: o.email, subject: 'Výzva k úhradě' + (inv.isFull ? '' : ' zálohy') + ' č. ' + inv.docNo + ' – ' + CONFIG.BRAND, body: text,
     replyTo: CONFIG.OWNER_EMAIL, name: CONFIG.BRAND, attachments: attachments,
   });
+  return inv;
 }
 
 /* ==================================== KONEČNÁ FAKTURA (DOPLATEK, PDF) ==================================== */
@@ -927,8 +950,12 @@ function adminAction(id, action, token) {
         // Zálohová faktura (PDF) – selhání nesmí zpochybnit už provedené potvrzení rezervace, jen se zaloguje.
         if (CONFIG.SEND_DEPOSIT_INVOICE) {
           try {
-            sendDepositInvoice_(o);
-            setRowFields_(row.rowIndex, { 'Záloha odesláno': Utilities.formatDate(new Date(), tz_(), 'dd.MM.yyyy HH:mm:ss') });
+            const inv = sendDepositInvoice_(o);
+            const fields = { 'Záloha odesláno': Utilities.formatDate(new Date(), tz_(), 'dd.MM.yyyy HH:mm:ss') };
+            // Platba na celou částku (pozdě potvrzená rezervace) -> konečná faktura se k ní už nevztahuje,
+            // ať ji denní úloha sendDueFinalInvoices_ nikdy nezkouší poslat.
+            if (inv && inv.isFull) fields['Konečná faktura'] = 'Nepoužije se (uhrazeno najednou)';
+            setRowFields_(row.rowIndex, fields);
           } catch (e) { console.error('Výzva k úhradě zálohy: ' + e); }
         }
       };
@@ -1000,16 +1027,18 @@ function dashboardPage_(p) {
     const from = cellYmd_(v[COL['Převzetí']]), to = cellYmd_(v[COL['Vrácení']]);
     let calc = null;
     try { calc = calcRentalTotal_(from, to); } catch (e) { /* neplatné datum ve starém řádku */ }
-    const deposit = calc ? Math.round(calc.total * CONFIG.DEPOSIT_PERCENT) : null;
+    const finalSent = String(v[COL['Konečná faktura']] || '');
+    const isFullPayment = finalSent.indexOf('Nepoužije se') === 0;   // pozdě potvrzená rezervace -> platba najednou (viz sendDepositInvoice_)
+    const deposit = calc ? Math.round(calc.total * (isFullPayment ? 1 : CONFIG.DEPOSIT_PERCENT)) : null;
     const rest = calc ? calc.total - deposit : null;
     const depositSent = String(v[COL['Záloha odesláno']] || '');
     const depositPaid = String(v[COL['Záloha uhrazena']] || '');
-    const finalSent = String(v[COL['Konečná faktura']] || '');
     const finalPaid = String(v[COL['Doplatek uhrazen']] || '');
     const soon = stav === STATUS.CONFIRMED && from <= addDaysYmd_(today, 7) && from >= today;
 
-    function payCell(amount, sentAt, paidAt, field) {
+    function payCell(amount, sentAt, paidAt, field, naLabel) {
       if (stav !== STATUS.CONFIRMED) return '<span class="muted">–</span>';
+      if (naLabel) return '<span class="muted">' + escHtml_(naLabel) + '</span>';
       if (!sentAt) return '<span class="muted">zatím neodesláno</span>';
       const amountTxt = amount != null ? czMoney_(amount) : '';
       const sentTxt = '<div class="muted" style="font-size:11px">odesláno ' + escHtml_(sentAt.split(' ')[0]) + '</div>';
@@ -1026,8 +1055,8 @@ function dashboardPage_(p) {
       '<td><b>' + escHtml_(String(v[COL['Jméno']])) + '</b><br><span class="muted">' + escHtml_(String(v[COL['Telefon']])) + '<br>' + escHtml_(String(v[COL['E-mail']])) + '</span></td>' +
       '<td>' + escHtml_(czDate_(from)) + ' – ' + escHtml_(czDate_(to)) + '</td>' +
       '<td>' + (calc ? escHtml_(czMoney_(calc.total)) : '–') + '</td>' +
-      '<td>' + payCell(deposit, depositSent, depositPaid, 'Záloha uhrazena') + '</td>' +
-      '<td>' + payCell(rest, finalSent, finalPaid, 'Doplatek uhrazen') + '</td>' +
+      '<td>' + (isFullPayment ? '<span class="muted" style="font-size:11px">(platba najednou)</span><br>' : '') + payCell(deposit, depositSent, depositPaid, 'Záloha uhrazena') + '</td>' +
+      '<td>' + payCell(rest, finalSent, finalPaid, 'Doplatek uhrazen', isFullPayment ? 'nepoužije se' : null) + '</td>' +
       '</tr>';
   }).join('');
 

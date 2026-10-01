@@ -122,6 +122,13 @@ teď navíc potřebuje přístup k **Disku a Dokumentům Google**. Po vložení 
 
 Automatické odesílání lze kdykoli vypnout nastavením `SEND_DEPOSIT_INVOICE: false` v `CONFIG`.
 
+## Potvrzení "na poslední chvíli" – platba najednou
+Je-li v okamžiku potvrzení do termínu převzetí `CONFIG.FULL_PAYMENT_THRESHOLD_DAYS` dní nebo méně
+(výchozí 14), nerozděluje se platba na zálohu a doplatek – nájemce dostane jednu **„Výzvu k úhradě“
+na celé nájemné**. Taková rezervace se pak už nezapočítává do denního odesílání konečné faktury
+(ve sloupci „Konečná faktura“ bude „Nepoužije se (uhrazeno najednou)“) a v přehledu plateb má sloupec
+Doplatek označený „nepoužije se“.
+
 ## Přehled plateb (soukromá stránka)
 Při prvním spuštění `setup` po vložení této verze `Code.gs` vám přijde e-mail **„Odkaz na přehled plateb"**
 se soukromým odkazem (obsahuje tajný klíč) – uložte si ho, např. do záložek. Stránka nikde na webu není
