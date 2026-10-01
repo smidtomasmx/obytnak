@@ -96,17 +96,24 @@ Jakmile ho vyplníte, poptávky chodí **jen** přes nový systém (FormSubmit s
 Po každé úpravě `Code.gs`: **Nasadit → Spravovat nasazení →** ikona tužky **→ Verze: Nová verze → Nasadit**.
 URL zůstane stejná, `rezervace.html` se měnit nemusí.
 
-## Zálohová faktura (PDF) po potvrzení rezervace
+## Výzva k úhradě zálohy (PDF) po potvrzení rezervace
 Když kliknete na **POTVRDIT REZERVACI** v e-mailu, skript kromě zápisu do kalendáře automaticky vygeneruje
-**zálohovou fakturu (PDF)** a **náhled smlouvy o nájmu (PDF)** a pošle obě e-mailem zákazníkovi jako přílohy
-(záloha 30 % z ceny nájemného, vypočtené ze stejného ceníku jako na webu; náhled smlouvy má předvyplněné jméno,
-telefon, e-mail, termín a cenu z rezervace – datum narození, doklady a adresu nájemce doplní pronajímatel do
-vyhotovení k podpisu). Fakturační údaje (jméno, IČ, DIČ, adresa, bankovní účet) jsou v `Code.gs` v konstantě
-`SUPPLIER` – při změně sídla, IČ, DIČ nebo čísla účtu upravte **jen tam**. Ceník pro výpočet je v konstantě
-`SEASONS` – musí zůstat stejný jako tabulka Sazby v `cenik.html` a `#priceTable` v `rezervace.html`. Text
-náhledu smlouvy (funkce `buildContractPreviewPdf_`) musí zůstat stejný jako `dokumenty/Smlouva-o-najmu-obytneho-vozu.docx`/`.pdf` – při úpravě smlouvy upravte **obě místa**.
+**výzvu k úhradě zálohy (PDF, nedaňový doklad)** a **náhled smlouvy o nájmu (PDF)** a pošle obě e-mailem
+zákazníkovi jako přílohy (záloha 30 % z ceny nájemného, vypočtené ze stejného ceníku jako na webu; náhled
+smlouvy má předvyplněné jméno, telefon, e-mail, termín a cenu z rezervace – datum narození, doklady a adresu
+nájemce doplní pronajímatel do vyhotovení k podpisu). Fakturační údaje (jméno, IČ, DIČ, adresa, bankovní účet)
+jsou v `Code.gs` v konstantě `SUPPLIER` – při změně sídla, IČ, DIČ nebo čísla účtu upravte **jen tam**. Ceník
+pro výpočet je v konstantě `SEASONS` – musí zůstat stejný jako tabulka Sazby v `cenik.html` a `#priceTable`
+v `rezervace.html`. Text náhledu smlouvy (funkce `buildContractPreviewPdf_`) musí zůstat stejný jako
+`dokumenty/Smlouva-o-najmu-obytneho-vozu.docx`/`.pdf` – při úpravě smlouvy upravte **obě místa**.
 
-Protože faktura vzniká přes dočasný Google Dokument (vytvoří se, naplní, exportuje do PDF a hned smaže), skript
+Doklad se čísluje jednoduchým rostoucím počítadlem (1, 2, 3…), uloženým ve Vlastnostech skriptu
+(`DOC_COUNTER_deposit`) – nezávisle na ID poptávky. Místo variabilního symbolu se platba páruje podle
+**jména zákazníka a termínu zápůjčky**, které má nájemce uvést do poznámky k platbě (uvedené v dokladu
+i v e-mailu). Žádný QR kód ani jiná externí služba se nepoužívá – platební údaje jsou jen text, aby
+nikam neodcházela žádná platební data mimo váš Google účet.
+
+Protože doklad vzniká přes dočasný Google Dokument (vytvoří se, naplní, exportuje do PDF a hned smaže), skript
 teď navíc potřebuje přístup k **Disku a Dokumentům Google**. Po vložení této verze `Code.gs` proto:
 1. V editoru vyberte funkci **setup** a klikněte na **Spustit** – zobrazí se nové okno s žádostí o oprávnění
    (Disk, Dokumenty), potvrďte stejně jako v Kroku 3.
@@ -114,6 +121,23 @@ teď navíc potřebuje přístup k **Disku a Dokumentům Google**. Po vložení 
 3. Vyzkoušejte potvrzením testovací poptávky, že e-mail se zálohovou fakturou (PDF v příloze) dorazil.
 
 Automatické odesílání lze kdykoli vypnout nastavením `SEND_DEPOSIT_INVOICE: false` v `CONFIG`.
+
+## Přehled plateb (soukromá stránka)
+Při prvním spuštění `setup` po vložení této verze `Code.gs` vám přijde e-mail **„Odkaz na přehled plateb"**
+se soukromým odkazem (obsahuje tajný klíč) – uložte si ho, např. do záložek. Stránka nikde na webu není
+odkazovaná a bez klíče v odkazu se neotevře. Ukazuje u každé rezervace termín, celkovou cenu a u zálohy
+i doplatku, kdy byl doklad odeslán, s tlačítkem **„označit jako uhrazeno"**. Skript nemá přístup k vašemu
+bankovnictví, takže platbu nelze ověřit automaticky – označujete ji ručně po kontrole výpisu (zákazník do
+poznámky k platbě píše své jméno a termín zápůjčky, podle toho platbu v bance najdete).
+
+Řádky s převzetím do 7 dnů jsou zvýrazněné jako „blíží se“, ať vám nic neuteče.
+
+## Konečná faktura (doplatek) – automaticky, bez zásahu
+Denní spouštěč (vytvoří ho `setup`) každý den v 8:00 zkontroluje potvrzené rezervace a jakmile je do
+převzetí `CONFIG.FINAL_INVOICE_DAYS_BEFORE` dní (výchozí 40) nebo méně, automaticky pošle konečnou fakturu
+s doplatkem – i u rezervace potvrzené na poslední chvíli, kdy by přesná shoda „přesně 40. den“ nikdy
+nenastala. Nic se neposílá dvakrát (hlídá sloupec „Konečná faktura“ v tabulce) a nic se neposílá na
+rezervaci, jejíž termín už proběhl.
 
 ## Konečná faktura (doplatek) – 40 dní před převzetím
 Funkce **setup** teď navíc vytvoří denní časový spouštěč (Nasadit se pro to nemusí nic zvlášť dělat, stačí

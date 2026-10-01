@@ -83,7 +83,8 @@ const SERVICE_FEE = 1500;                                       // jednorázový
 
 const STATUS = { INQUIRY: 'POPTÁVKA', CONFIRMED: 'POTVRZENO', CANCELLED: 'ZRUŠENO' };
 const COLS = ['ID', 'Vytvořeno', 'Stav', 'Jméno', 'Telefon', 'E-mail', 'Osob', 'Převzetí', 'Vrácení',
-              'Dní', 'Poznámka', 'ID události v kalendáři', 'Aktualizováno', 'RequestId', 'Konečná faktura'];
+              'Dní', 'Poznámka', 'ID události v kalendáři', 'Aktualizováno', 'RequestId', 'Konečná faktura',
+              'Záloha odesláno', 'Záloha uhrazena', 'Doplatek uhrazen'];
 const COL = COLS.reduce((o, n, i) => { o[n] = i; return o; }, {});
 
 /* ================================ POMOCNÉ FUNKCE ================================ */
@@ -178,28 +179,37 @@ function calcRentalTotal_(fromYmd, toYmd) {
   return { days: days, lines: lines, total: total };
 }
 
-/* ==================================== ZÁLOHOVÁ FAKTURA (PDF) ==================================== */
-/** Číslo zálohové faktury odvozené z ID poptávky (jedinečné, bez nutnosti samostatné číselné řady). */
-function invoiceNumber_(id) { return 'ZF' + String(id).replace(/^P/, ''); }
-/** Variabilní symbol pro platbu – české banky přijímají jen ČÍSLO o max. 10 číslicích. */
-function invoiceVs_(id) { return String(id).replace(/\D/g, '').slice(0, 10); }
+/* ==================================== VÝZVA K ÚHRADĚ ZÁLOHY (PDF) ==================================== */
+/**
+ * Pořadové číslo dokladu – jednoduché rostoucí počítadlo uložené ve vlastnostech skriptu (1, 2, 3…),
+ * nezávislé na ID poptávky. 'kind' odlišuje řady (zatím jen 'deposit'), kdyby se v budoucnu hodilo
+ * číslovat samostatně i jiný typ dokladu.
+ */
+function nextDocNumber_(kind) {
+  const key = 'DOC_COUNTER_' + kind;
+  const p = props_();
+  const n = (parseInt(p.getProperty(key) || '0', 10)) + 1;
+  p.setProperty(key, String(n));
+  return n;
+}
 
 /**
- * Vytvoří PDF zálohové faktury přes dočasný Google Dokument (vytvoří ho, naplní, exportuje do PDF
+ * Vytvoří PDF výzvy k úhradě zálohy přes dočasný Google Dokument (vytvoří ho, naplní, exportuje do PDF
  * a dokument smaže – v Disku po sobě nenechává žádné trvalé soubory, jen e-mailovou přílohu).
  */
 function buildDepositInvoicePdf_(o, calc) {
-  const invNo = invoiceNumber_(o.id);
+  const docNo = nextDocNumber_('deposit');
   const today = new Date();
   const due = addBusinessDays_(today, CONFIG.INVOICE_DUE_BUSINESS_DAYS);
   const deposit = Math.round(calc.total * CONFIG.DEPOSIT_PERCENT);
+  const paymentNote = o.name + ', ' + czDate_(o.from) + '–' + czDate_(o.to);   // do poznámky k platbě: jméno a termín zápůjčky
 
-  const doc = DocumentApp.create('TMP-' + invNo);
+  const doc = DocumentApp.create('TMP-ZAL-' + docNo);
   try {
     const body = doc.getBody();
     body.setMarginTop(46).setMarginBottom(46).setMarginLeft(56).setMarginRight(56);
 
-    body.appendParagraph('ZÁLOHOVÁ FAKTURA č. ' + invNo).setHeading(DocumentApp.ParagraphHeading.TITLE);
+    body.appendParagraph('VÝZVA K ÚHRADĚ ZÁLOHY č. ' + docNo).setHeading(DocumentApp.ParagraphHeading.TITLE);
     const taxNote = body.appendParagraph('NEDAŇOVÝ DOKLAD');
     taxNote.setBold(true).setFontSize(11).setForegroundColor('#B3261E').setSpacingAfter(2);
     body.appendParagraph('Tento doklad nemá charakter daňového dokladu. Daňový doklad o přijetí zálohy bude vystaven po úhradě.').setItalic(true).setSpacingAfter(14);
@@ -219,7 +229,7 @@ function buildDepositInvoicePdf_(o, calc) {
     body.appendTable([
       ['Datum vystavení', Utilities.formatDate(today, tz_(), 'dd.MM.yyyy')],
       ['Datum splatnosti', Utilities.formatDate(due, tz_(), 'dd.MM.yyyy')],
-      ['Variabilní symbol', invoiceVs_(o.id)],
+      ['Do poznámky k platbě uveďte', paymentNote],
       ['Bankovní spojení', SUPPLIER.bankAccount],
       ['Předmět', 'Záloha na pronájem obytného vozu ' + CONFIG.VEHICLE],
       ['Termín pronájmu', czDate_(o.from) + ' – ' + czDate_(o.to) + ' (' + calc.days + ' ' + daysWord_(calc.days) + ')'],
@@ -240,9 +250,10 @@ function buildDepositInvoicePdf_(o, calc) {
     depPar.setBold(true).setFontSize(14).setSpacingBefore(16);
 
     body.appendParagraph(
-      'Zálohu prosím uhraďte do data splatnosti na výše uvedený bankovní účet pod uvedeným variabilním symbolem. ' +
+      'Zálohu prosím uhraďte do data splatnosti na výše uvedený bankovní účet. Do zprávy pro příjemce / poznámky k platbě uveďte prosím ' +
+      'své jméno a příjmení a termín zápůjčky (' + paymentNote + '), ať platbu snadno spárujeme. ' +
       'Termín pronájmu je pevně rezervovaný až po připsání zálohy na účet a po vrácení jednoho podepsaného výtisku smlouvy o nájmu. ' +
-      'Doplatek nájemného (' + czMoney_(calc.total - deposit) + ') zašleme formou konečné faktury nejpozději ' + CONFIG.FINAL_INVOICE_DAYS_BEFORE +
+      'Doplatek nájemného (' + czMoney_(calc.total - deposit) + ') zašleme nejpozději ' + CONFIG.FINAL_INVOICE_DAYS_BEFORE +
       ' dnů před termínem převzetí vozidla; uhraďte ho prosím nejpozději ' + CONFIG.FINAL_INVOICE_DUE_DAYS_BEFORE + ' dnů před termínem převzetí vozidla.'
     ).setSpacingBefore(14);
 
@@ -250,30 +261,31 @@ function buildDepositInvoicePdf_(o, calc) {
 
     doc.saveAndClose();
     const file = DriveApp.getFileById(doc.getId());
-    const pdf = file.getAs('application/pdf').setName('Zalohova-faktura-' + invNo + '.pdf');
+    const pdf = file.getAs('application/pdf').setName('Vyzva-k-uhrade-zalohy-' + docNo + '.pdf');
     file.setTrashed(true);
-    return { blob: pdf, invNo: invNo, vs: invoiceVs_(o.id), deposit: deposit, due: due };
+    return { blob: pdf, docNo: docNo, deposit: deposit, due: due };
   } catch (err) {
     try { DriveApp.getFileById(doc.getId()).setTrashed(true); } catch (e2) { /* ignore */ }
     throw err;
   }
 }
 
-/** Sestaví a e-mailem pošle zálohovou fakturu zákazníkovi (PDF příloha), po úspěšném POTVRZENÍ rezervace. */
+/** Sestaví a e-mailem pošle výzvu k úhradě zálohy zákazníkovi (PDF příloha), po úspěšném POTVRZENÍ rezervace. */
 function sendDepositInvoice_(o) {
   const calc = calcRentalTotal_(o.from, o.to);
   const inv = buildDepositInvoicePdf_(o, calc);
   const attachments = [inv.blob];
-  // Náhled smlouvy o nájmu – chyba při jeho generování nesmí zablokovat odeslání faktury.
+  // Náhled smlouvy o nájmu – chyba při jeho generování nesmí zablokovat odeslání výzvy k úhradě.
   try { attachments.push(buildContractPreviewPdf_(o, calc)); } catch (e) { console.error('Náhled smlouvy: ' + e); }
-  const text = 'Dobrý den,\n\nv příloze zasíláme zálohovou fakturu č. ' + inv.invNo + ' (nedaňový doklad) a náhled smlouvy o nájmu k Vaší rezervaci obytného vozu ' + CONFIG.VEHICLE +
+  const paymentNote = o.name + ', ' + czDate_(o.from) + '–' + czDate_(o.to);
+  const text = 'Dobrý den,\n\nv příloze zasíláme výzvu k úhradě zálohy č. ' + inv.docNo + ' (nedaňový doklad) a náhled smlouvy o nájmu k Vaší rezervaci obytného vozu ' + CONFIG.VEHICLE +
     ' (' + czDate_(o.from) + ' – ' + czDate_(o.to) + ').\n\nK úhradě: ' + czMoney_(inv.deposit) +
     '\nSplatnost: ' + Utilities.formatDate(inv.due, tz_(), 'dd.MM.yyyy') +
-    '\nBankovní spojení: ' + SUPPLIER.bankAccount + '\nVariabilní symbol: ' + inv.vs +
+    '\nBankovní spojení: ' + SUPPLIER.bankAccount + '\nDo zprávy pro příjemce / poznámky k platbě uveďte: ' + paymentNote +
     '\n\nTermín je pevně rezervovaný až po připsání zálohy na účet a po vrácení jednoho podepsaného výtisku smlouvy. Kdyby cokoli, volejte ' + CONFIG.OWNER_PHONE +
     '.\n\nS pozdravem\n' + CONFIG.BRAND;
   MailApp.sendEmail({
-    to: o.email, subject: 'Zálohová faktura ' + inv.invNo + ' – ' + CONFIG.BRAND, body: text,
+    to: o.email, subject: 'Výzva k úhradě zálohy č. ' + inv.docNo + ' – ' + CONFIG.BRAND, body: text,
     replyTo: CONFIG.OWNER_EMAIL, name: CONFIG.BRAND, attachments: attachments,
   });
 }
@@ -281,6 +293,8 @@ function sendDepositInvoice_(o) {
 /* ==================================== KONEČNÁ FAKTURA (DOPLATEK, PDF) ==================================== */
 /** Číslo konečné faktury odvozené z ID poptávky (KF = konečná faktura, ZF = zálohová). */
 function invoiceNumberFinal_(id) { return 'KF' + String(id).replace(/^P/, ''); }
+/** Variabilní symbol pro konečnou fakturu – české banky přijímají jen ČÍSLO o max. 10 číslicích. */
+function invoiceVs_(id) { return String(id).replace(/\D/g, '').slice(0, 10); }
 
 /** Stejná stavba jako zálohová faktura, ale ukazuje už zaplacenou zálohu a doplatek (zbývajících 70 %). */
 function buildFinalInvoicePdf_(o, calc) {
@@ -371,11 +385,16 @@ function sendFinalInvoice_(o) {
 function sendDueFinalInvoices_() {
   if (!CONFIG.SEND_FINAL_INVOICE) return;
   const targetYmd = addDaysYmd_(todayYmd_(), CONFIG.FINAL_INVOICE_DAYS_BEFORE);
+  const todayY = todayYmd_();
   readRows_().forEach(function (r) {
     const o = rowToObj_(r);
     if (o.status !== STATUS.CONFIRMED) return;
-    if (o.from !== targetYmd) return;
     if (String(r.v[COL['Konečná faktura']] || '')) return;   // už poslána
+    if (o.from < todayY) return;                             // termín už proběhl, nedohánět
+    // Pošle se, jakmile je převzetí "na dohled" (<= FINAL_INVOICE_DAYS_BEFORE dní) – ne jen přesně v ten
+    // jeden den. Díky tomu se nic neztratí ani u rezervace potvrzené na poslední chvíli (např. 10 dní
+    // před převzetím), kdy by přesná shoda dne nikdy nenastala.
+    if (o.from > targetYmd) return;
     try {
       sendFinalInvoice_(o);
       setRowFields_(r.rowIndex, { 'Konečná faktura': Utilities.formatDate(new Date(), tz_(), 'dd.MM.yyyy HH:mm:ss') });
@@ -629,6 +648,7 @@ function doGet(e) {
   try {
     if (p.action === 'busy') return json_(busyResponse_(p));
     if (p.action === 'confirm' || p.action === 'reject' || p.action === 'cancel') return adminPage_(p);
+    if (p.action === 'dashboard') return dashboardPage_(p);
   } catch (err) {
     console.error('doGet: ' + err);
     if (p.action === 'busy') return json_({ ok: false, message: 'Obsazenost se nepodařilo načíst.' });
@@ -905,7 +925,12 @@ function adminAction(id, action, token) {
         try { sendCustomerConfirmed_(o); } catch (e) { console.error(e); }
         try { sendOwnerConfirmed_(o); } catch (e) { console.error(e); }
         // Zálohová faktura (PDF) – selhání nesmí zpochybnit už provedené potvrzení rezervace, jen se zaloguje.
-        if (CONFIG.SEND_DEPOSIT_INVOICE) { try { sendDepositInvoice_(o); } catch (e) { console.error('Zálohová faktura: ' + e); } }
+        if (CONFIG.SEND_DEPOSIT_INVOICE) {
+          try {
+            sendDepositInvoice_(o);
+            setRowFields_(row.rowIndex, { 'Záloha odesláno': Utilities.formatDate(new Date(), tz_(), 'dd.MM.yyyy HH:mm:ss') });
+          } catch (e) { console.error('Výzva k úhradě zálohy: ' + e); }
+        }
       };
       return { ok: true, message: 'Hotovo. Rezervace je POTVRZENA a zapsána do Google Kalendáře. Zákazník dostane e-mail.' };
     }
@@ -935,6 +960,110 @@ function adminAction(id, action, token) {
   }
 }
 
+/* ================================ PŘEHLED PLATEB (SOUKROMÁ STRÁNKA) ================================ */
+/**
+ * Odkaz na tuto stránku (s klíčem) vypíše funkce setup() do Protokolu provádění a pošle vám ho
+ * i e-mailem při prvním spuštění. Stránka NENÍ nikde na webu odkazovaná a bez správného klíče
+ * (?action=dashboard&key=…) se nedá otevřít. Ukazuje u každé rezervace, kdy byla zákazníkovi
+ * odeslána výzva k úhradě zálohy / konečná faktura, a nechá vás ručně označit, že peníze skutečně
+ * dorazily na účet – to automaticky poznat nejde, skript nemá přístup k vašemu bankovnictví.
+ */
+function dashboardKey_() {
+  const k = props_().getProperty('DASHBOARD_KEY');
+  if (!k) throw new Error('Chybí klíč pro přehled plateb. Spusťte funkci setup().');
+  return k;
+}
+function verifyDashboardKey_(given) {
+  let expected;
+  try { expected = dashboardKey_(); } catch (e) { return false; }
+  given = String(given || '');
+  if (given.length !== expected.length) return false;
+  let diff = 0;
+  for (let i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ given.charCodeAt(i);
+  return diff === 0;
+}
+function dashboardUrl_() { return webAppUrl_() + '?action=dashboard&key=' + encodeURIComponent(dashboardKey_()); }
+
+function dashboardPage_(p) {
+  if (!verifyDashboardKey_(p.key)) {
+    return HtmlService.createHtmlOutput('<p>Přístup odepřen.</p>').setTitle('Přístup odepřen');
+  }
+  const key = String(p.key);
+  const rows = readRows_().filter(function (r) { return String(r.v[COL['Stav']]) !== STATUS.CANCELLED; });
+  rows.sort(function (a, b) { return String(a.v[COL['Převzetí']]).localeCompare(String(b.v[COL['Vrácení']])); });
+
+  const today = todayYmd_();
+  const trs = rows.map(function (r) {
+    const v = r.v;
+    const id = String(v[COL['ID']]);
+    const stav = String(v[COL['Stav']]);
+    const from = cellYmd_(v[COL['Převzetí']]), to = cellYmd_(v[COL['Vrácení']]);
+    let calc = null;
+    try { calc = calcRentalTotal_(from, to); } catch (e) { /* neplatné datum ve starém řádku */ }
+    const deposit = calc ? Math.round(calc.total * CONFIG.DEPOSIT_PERCENT) : null;
+    const rest = calc ? calc.total - deposit : null;
+    const depositSent = String(v[COL['Záloha odesláno']] || '');
+    const depositPaid = String(v[COL['Záloha uhrazena']] || '');
+    const finalSent = String(v[COL['Konečná faktura']] || '');
+    const finalPaid = String(v[COL['Doplatek uhrazen']] || '');
+    const soon = stav === STATUS.CONFIRMED && from <= addDaysYmd_(today, 7) && from >= today;
+
+    function payCell(amount, sentAt, paidAt, field) {
+      if (stav !== STATUS.CONFIRMED) return '<span class="muted">–</span>';
+      if (!sentAt) return '<span class="muted">zatím neodesláno</span>';
+      const amountTxt = amount != null ? czMoney_(amount) : '';
+      const sentTxt = '<div class="muted" style="font-size:11px">odesláno ' + escHtml_(sentAt.split(' ')[0]) + '</div>';
+      if (paidAt) {
+        return '<div><b style="color:#2f9e44">✓ uhrazeno</b><br>' + escHtml_(amountTxt) + sentTxt +
+          '<button class="small" onclick="togglePaid(\'' + id + '\',\'' + field + '\',false,this)">zrušit značku</button></div>';
+      }
+      return '<div><b style="color:#b3261e">neuhrazeno</b><br>' + escHtml_(amountTxt) + sentTxt +
+        '<button class="small ok" onclick="togglePaid(\'' + id + '\',\'' + field + '\',true,this)">označit jako uhrazeno</button></div>';
+    }
+
+    return '<tr' + (soon ? ' style="background:#fff7e6"' : '') + '>' +
+      '<td>' + escHtml_(stav) + (soon ? '<br><span style="color:#b3261e;font-size:11px">blíží se</span>' : '') + '</td>' +
+      '<td><b>' + escHtml_(String(v[COL['Jméno']])) + '</b><br><span class="muted">' + escHtml_(String(v[COL['Telefon']])) + '<br>' + escHtml_(String(v[COL['E-mail']])) + '</span></td>' +
+      '<td>' + escHtml_(czDate_(from)) + ' – ' + escHtml_(czDate_(to)) + '</td>' +
+      '<td>' + (calc ? escHtml_(czMoney_(calc.total)) : '–') + '</td>' +
+      '<td>' + payCell(deposit, depositSent, depositPaid, 'Záloha uhrazena') + '</td>' +
+      '<td>' + payCell(rest, finalSent, finalPaid, 'Doplatek uhrazen') + '</td>' +
+      '</tr>';
+  }).join('');
+
+  const html = '<!DOCTYPE html><html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+    '<title>Přehled plateb – ' + escHtml_(CONFIG.BRAND) + '</title>' +
+    '<style>body{font-family:Arial,sans-serif;background:#f4f6f1;color:#14251b;margin:0;padding:20px}' +
+    'h1{font-size:1.3rem} table{border-collapse:collapse;width:100%;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.06)}' +
+    'th,td{padding:8px 10px;border-bottom:1px solid #e3e8e0;text-align:left;font-size:13px;vertical-align:top}' +
+    'th{background:#eef2ea;position:sticky;top:0} .muted{color:#777} ' +
+    'button.small{font-size:11px;margin-top:4px;padding:4px 8px;border-radius:6px;border:1px solid #ccc;background:#f4f6f1;cursor:pointer}' +
+    'button.small.ok{background:#2f9e44;color:#fff;border-color:#2f9e44}</style></head><body>' +
+    '<h1>Přehled plateb – ' + escHtml_(CONFIG.BRAND) + '</h1>' +
+    '<p class="muted">Řádky „blíží se“ mají převzetí do 7 dnů. Platby se neověřují automaticky (skript nemá přístup k bankovnictví) – označte je prosím ručně po kontrole bankovního výpisu (platby jsou psané na jméno a termín zápůjčky).</p>' +
+    '<table><thead><tr><th>Stav</th><th>Zákazník</th><th>Termín</th><th>Celkem</th><th>Záloha</th><th>Doplatek</th></tr></thead><tbody>' +
+    trs + '</tbody></table>' +
+    '<script>var KEY=' + JSON.stringify(key) + ';' +
+    'function togglePaid(id,field,value,btn){btn.disabled=true;btn.textContent="Ukládám…";' +
+    'google.script.run.withSuccessHandler(function(){location.reload();})' +
+    '.withFailureHandler(function(){alert("Nepodařilo se uložit, zkuste to znovu.");btn.disabled=false;})' +
+    '.setPaidStatus_(id,field,value,KEY);}</script>' +
+    '</body></html>';
+  return HtmlService.createHtmlOutput(html).setTitle('Přehled plateb');
+}
+
+/** Volá se ze stránky přehledu (google.script.run). Ručně označí/odznačí zálohu nebo doplatek jako uhrazené. */
+function setPaidStatus_(id, field, value, key) {
+  if (!verifyDashboardKey_(key)) throw new Error('Neplatný klíč.');
+  if (field !== 'Záloha uhrazena' && field !== 'Doplatek uhrazen') throw new Error('Neznámé pole.');
+  const row = findRow_(id);
+  if (!row) throw new Error('Rezervace nenalezena.');
+  const fields = {};
+  fields[field] = value ? Utilities.formatDate(new Date(), tz_(), 'dd.MM.yyyy HH:mm:ss') : '';
+  setRowFields_(row.rowIndex, fields);
+  return { ok: true };
+}
+
 /* ================================ JEDNORÁZOVÉ NASTAVENÍ ================================ */
 /**
  * Spusťte jednou ručně z editoru (Spustit → setup). Vytvoří tajný klíč, propojí Google Tabulku,
@@ -943,6 +1072,8 @@ function adminAction(id, action, token) {
 function setup() {
   const props = props_();
   if (!props.getProperty('SECRET')) props.setProperty('SECRET', Utilities.getUuid() + Utilities.getUuid() + Utilities.getUuid());
+  const isNewDashboardKey = !props.getProperty('DASHBOARD_KEY');
+  if (isNewDashboardKey) props.setProperty('DASHBOARD_KEY', Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, ''));
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   if (!ss) throw new Error('Skript musí být otevřen z Google Tabulky (v Tabulce: Rozšíření → Apps Script).');
   props.setProperty('SHEET_ID', ss.getId());
@@ -950,7 +1081,16 @@ function setup() {
   calendar_();                 // vyhodí chybu, pokud k němu nemáte přístup
   selfTest_();
   ensureDailyTrigger_();
-  Logger.log('SETUP OK. Tabulka: ' + ss.getUrl() + ' | Zbývající denní kvóta e-mailů: ' + MailApp.getRemainingDailyQuota());
+  const dashUrl = dashboardUrl_();
+  if (isNewDashboardKey) {
+    // Odkaz na přehled plateb pošleme jen JEDNOU, při prvním vytvoření klíče (ať nechodí e-mail při každém setup).
+    try {
+      MailApp.sendEmail({ to: CONFIG.OWNER_EMAIL, subject: 'Odkaz na přehled plateb – ' + CONFIG.BRAND,
+        body: 'Dobrý den,\n\ntady je soukromý odkaz na přehled plateb (kdo má uhrazenou zálohu/doplatek). ' +
+          'Nikomu ho neposílejte, uložte si ho (např. do záložek):\n\n' + dashUrl + '\n\nS pozdravem\n' + CONFIG.BRAND });
+    } catch (e) { console.error('Odeslání odkazu na přehled plateb selhalo: ' + e); }
+  }
+  Logger.log('SETUP OK. Tabulka: ' + ss.getUrl() + ' | Přehled plateb: ' + dashUrl + ' | Zbývající denní kvóta e-mailů: ' + MailApp.getRemainingDailyQuota());
   return 'SETUP OK';
 }
 
