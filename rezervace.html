@@ -129,7 +129,14 @@
               <fieldset class="extras">
                 <legend>Doplňkové položky (jednorázově)</legend>
                 <label class="check"><input type="checkbox" name="extra" value="Koloběžka" data-price="1000"> Koloběžka <small>1 000 Kč</small></label>
-                <label class="check"><input type="checkbox" name="extra" value="Ložní prádlo" data-price="0"> Ložní prádlo <small>Zdarma</small></label>
+                <label class="check"><input type="checkbox" name="extra" value="Ložní prádlo" data-price="0" id="extraLozni"> Ložní prádlo <small>Zdarma</small></label>
+                <div id="lozniQtyRow" hidden style="margin:8px 0 0 28px;max-width:220px">
+                  <label for="lozniQty">Počet sad ložního prádla</label>
+                  <select id="lozniQty" name="lozniQty">
+                    <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                    <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+                  </select>
+                </div>
               </fieldset>
               <div><label for="note">Poznámka (nepovinné)</label><textarea id="note" name="note" placeholder="Kam plánujete vyrazit, dotazy…"></textarea></div>
 

@@ -330,7 +330,18 @@ function initReservation() {
     to: f.dateTo.value ? fromIso(f.dateTo.value) : null,
     guests: +f.guests.value || 1,
   });
-  const chosenExtras = () => $$("input[name=extra]:checked", form).map(c => ({ name: c.value, price: num(c.dataset.price) }));
+  const chosenExtras = () => $$("input[name=extra]:checked", form).map(c => {
+    if (c.value === "Ložní prádlo" && f.lozniQty) return { name: `Ložní prádlo (${f.lozniQty.value}×)`, price: num(c.dataset.price) };
+    return { name: c.value, price: num(c.dataset.price) };
+  });
+  // Výběr počtu sad ložního prádla se zobrazí až po zaškrtnutí; výchozí počet = aktuální počet osob.
+  if (f.extraLozni && f.lozniQty) {
+    const lozniRow = $("#lozniQtyRow", form);
+    f.extraLozni.addEventListener("change", () => {
+      if (f.extraLozni.checked) { f.lozniQty.value = f.guests.value; lozniRow.hidden = false; }
+      else lozniRow.hidden = true;
+    });
+  }
 
   const validate = s => {
     if (!s.from || !s.to) return "Vyberte prosím datum převzetí a vrácení.";

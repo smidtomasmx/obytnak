@@ -200,7 +200,9 @@ function buildDepositInvoicePdf_(o, calc) {
     body.setMarginTop(46).setMarginBottom(46).setMarginLeft(56).setMarginRight(56);
 
     body.appendParagraph('ZÁLOHOVÁ FAKTURA č. ' + invNo).setHeading(DocumentApp.ParagraphHeading.TITLE);
-    body.appendParagraph('(daňový doklad o přijetí zálohy bude vystaven po úhradě)').setItalic(true).setSpacingAfter(14);
+    const taxNote = body.appendParagraph('NEDAŇOVÝ DOKLAD');
+    taxNote.setBold(true).setFontSize(11).setForegroundColor('#B3261E').setSpacingAfter(2);
+    body.appendParagraph('Tento doklad nemá charakter daňového dokladu. Daňový doklad o přijetí zálohy bude vystaven po úhradě.').setItalic(true).setSpacingAfter(14);
 
     const partiesTable = body.appendTable([
       ['Dodavatel', 'Odběratel'],
@@ -264,7 +266,7 @@ function sendDepositInvoice_(o) {
   const attachments = [inv.blob];
   // Náhled smlouvy o nájmu – chyba při jeho generování nesmí zablokovat odeslání faktury.
   try { attachments.push(buildContractPreviewPdf_(o, calc)); } catch (e) { console.error('Náhled smlouvy: ' + e); }
-  const text = 'Dobrý den,\n\nv příloze zasíláme zálohovou fakturu č. ' + inv.invNo + ' a náhled smlouvy o nájmu k Vaší rezervaci obytného vozu ' + CONFIG.VEHICLE +
+  const text = 'Dobrý den,\n\nv příloze zasíláme zálohovou fakturu č. ' + inv.invNo + ' (nedaňový doklad) a náhled smlouvy o nájmu k Vaší rezervaci obytného vozu ' + CONFIG.VEHICLE +
     ' (' + czDate_(o.from) + ' – ' + czDate_(o.to) + ').\n\nK úhradě: ' + czMoney_(inv.deposit) +
     '\nSplatnost: ' + Utilities.formatDate(inv.due, tz_(), 'dd.MM.yyyy') +
     '\nBankovní spojení: ' + SUPPLIER.bankAccount + '\nVariabilní symbol: ' + inv.vs +
@@ -805,6 +807,7 @@ function sendOwnerInquiry_(id, d) {
 }
 function sendCustomerAck_(d) {
   const lines = summaryLines_(d).filter(function (l) { return l[0] !== 'Telefon' && l[0] !== 'E-mail'; });
+  if (d.extras) lines.splice(lines.length - 1, 0, ['Doplňky', d.extras]);   // doplňky (vč. počtu kusů) před Poznámku
   const text = 'Dobrý den,\n\nděkujeme za Vaši poptávku. Termín nyní prověříme a ozveme se Vám, nejpozději do 24 hodin.\n' +
     'Rezervace zatím není potvrzena.\n\n' + lines.map(function (l) { return l[0] + ': ' + l[1]; }).join('\n') +
     '\n\nKdyby cokoli, volejte ' + CONFIG.OWNER_PHONE + '.\n\nS pozdravem\n' + CONFIG.BRAND;
