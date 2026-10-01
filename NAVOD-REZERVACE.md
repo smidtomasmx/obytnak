@@ -135,7 +135,9 @@ se soukromým odkazem (obsahuje tajný klíč) – uložte si ho, např. do zál
 odkazovaná a bez klíče v odkazu se neotevře. Ukazuje u každé rezervace termín, celkovou cenu a u zálohy
 i doplatku, kdy byl doklad odeslán, s tlačítkem **„označit jako uhrazeno"**. Skript nemá přístup k vašemu
 bankovnictví, takže platbu nelze ověřit automaticky – označujete ji ručně po kontrole výpisu (zákazník do
-poznámky k platbě píše své jméno a termín zápůjčky, podle toho platbu v bance najdete).
+poznámky k platbě píše své jméno a termín zápůjčky, podle toho platbu v bance najdete). Kliknutím na
+**„Potvrdit platbu“** se zároveň rovnou pošle zákazníkovi e-mail, že jsme jeho zálohu/doplatek přijali –
+tlačítko „zrušit značku“ (pro opravu omylu) žádný e-mail neposílá.
 
 Řádky s převzetím do 7 dnů jsou zvýrazněné jako „blíží se“, ať vám nic neuteče.
 

@@ -1047,7 +1047,7 @@ function dashboardPage_(p) {
           '<button class="small" onclick="togglePaid(\'' + id + '\',\'' + field + '\',false,this)">zrušit značku</button></div>';
       }
       return '<div><b style="color:#b3261e">neuhrazeno</b><br>' + escHtml_(amountTxt) + sentTxt +
-        '<button class="small ok" onclick="togglePaid(\'' + id + '\',\'' + field + '\',true,this)">označit jako uhrazeno</button></div>';
+        '<button class="small ok" onclick="togglePaid(\'' + id + '\',\'' + field + '\',true,this)">Potvrdit platbu (pošle e-mail zákazníkovi)</button></div>';
     }
 
     return '<tr' + (soon ? ' style="background:#fff7e6"' : '') + '>' +
@@ -1069,11 +1069,11 @@ function dashboardPage_(p) {
     'button.small{font-size:11px;margin-top:4px;padding:4px 8px;border-radius:6px;border:1px solid #ccc;background:#f4f6f1;cursor:pointer}' +
     'button.small.ok{background:#2f9e44;color:#fff;border-color:#2f9e44}</style></head><body>' +
     '<h1>Přehled plateb – ' + escHtml_(CONFIG.BRAND) + '</h1>' +
-    '<p class="muted">Řádky „blíží se“ mají převzetí do 7 dnů. Platby se neověřují automaticky (skript nemá přístup k bankovnictví) – označte je prosím ručně po kontrole bankovního výpisu (platby jsou psané na jméno a termín zápůjčky).</p>' +
+    '<p class="muted">Řádky „blíží se“ mají převzetí do 7 dnů. Platby se neověřují automaticky (skript nemá přístup k bankovnictví) – označte je prosím ručně po kontrole bankovního výpisu (platby jsou psané na jméno a termín zápůjčky). Tlačítko „Potvrdit platbu“ rovnou pošle zákazníkovi e-mail, že jsme platbu přijali; „zrušit značku“ e-mail neposílá.</p>' +
     '<table><thead><tr><th>Stav</th><th>Zákazník</th><th>Termín</th><th>Celkem</th><th>Záloha</th><th>Doplatek</th></tr></thead><tbody>' +
     trs + '</tbody></table>' +
     '<script>var KEY=' + JSON.stringify(key) + ';' +
-    'function togglePaid(id,field,value,btn){btn.disabled=true;btn.textContent="Ukládám…";' +
+    'function togglePaid(id,field,value,btn){btn.disabled=true;btn.textContent=value?"Odesílám e-mail…":"Ukládám…";' +
     'google.script.run.withSuccessHandler(function(){location.reload();})' +
     '.withFailureHandler(function(){alert("Nepodařilo se uložit, zkuste to znovu.");btn.disabled=false;})' +
     '.setPaidStatus_(id,field,value,KEY);}</script>' +
@@ -1090,7 +1090,31 @@ function setPaidStatus_(id, field, value, key) {
   const fields = {};
   fields[field] = value ? Utilities.formatDate(new Date(), tz_(), 'dd.MM.yyyy HH:mm:ss') : '';
   setRowFields_(row.rowIndex, fields);
+  // Při označení "uhrazeno" (ne při zrušení značky) rovnou pošleme zákazníkovi potvrzovací e-mail.
+  if (value) { try { sendPaymentConfirmedEmail_(id, field); } catch (e) { console.error('Potvrzení platby e-mailem: ' + e); } }
   return { ok: true };
+}
+
+/** Pošle zákazníkovi e-mail, že jeho záloha/doplatek (podle pole field) byly přijaty. */
+function sendPaymentConfirmedEmail_(id, field) {
+  const row = findRow_(id);
+  if (!row) return;
+  const o = rowToObj_(row);
+  const calc = calcRentalTotal_(o.from, o.to);
+  const finalSent = String(row.v[COL['Konečná faktura']] || '');
+  const isFullPayment = finalSent.indexOf('Nepoužije se') === 0;   // rezervace potvrzená na poslední chvíli -> platba najednou
+  const depositAmount = Math.round(calc.total * (isFullPayment ? 1 : CONFIG.DEPOSIT_PERCENT));
+  const isDeposit = field === 'Záloha uhrazena';
+  const amount = isDeposit ? depositAmount : (calc.total - depositAmount);
+  const label = isDeposit ? (isFullPayment ? 'platbu (celé nájemné)' : 'zálohu') : 'doplatek';
+  const text = 'Dobrý den,\n\npotvrzujeme, že jsme přijali Vaši platbu – ' + label + ' ve výši ' + czMoney_(amount) +
+    ' – k rezervaci obytného vozu ' + CONFIG.VEHICLE + ' (' + czDate_(o.from) + ' – ' + czDate_(o.to) + '). Děkujeme!' +
+    (isDeposit && !isFullPayment ? '\n\nDoplatek nájemného vám zašleme formou samostatné výzvy k úhradě později.' : '') +
+    '\n\nKdyby cokoli, volejte ' + CONFIG.OWNER_PHONE + '.\n\nS pozdravem\n' + CONFIG.BRAND;
+  MailApp.sendEmail({
+    to: o.email, subject: 'Potvrzení přijetí platby – ' + CONFIG.BRAND, body: text,
+    replyTo: CONFIG.OWNER_EMAIL, name: CONFIG.BRAND,
+  });
 }
 
 /* ================================ JEDNORÁZOVÉ NASTAVENÍ ================================ */
