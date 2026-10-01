@@ -33,7 +33,7 @@ Ostatní hodnoty:
 |---|---|
 | Kauce, nájezd (bez limitu) | `cenik.html` (sekce Podmínky) a `rezervace.html` (`id="pdDeposit"`) |
 | Koloběžka, pes | `cenik.html` → tabulka „Doplňkové položky“ |
-| Text „od X Kč / den“ na úvodní stránce | `index.html` (dvě místa, hledejte `od 2 290 Kč`) |
+| Text „od X Kč / den“ na úvodní stránce | `index.html` (dvě místa, hledejte `od 2 600 Kč`) |
 
 ## Blog
 Všechno je v `blog.html`. Každý článek je tam dvakrát: jako **karta v přehledu** a jako **celý článek** dole

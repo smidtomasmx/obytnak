@@ -74,11 +74,9 @@ const SUPPLIER = {
  * ranges: pole [MM-DD, MM-DD] období, ve kterých sazba platí (poslední řádek bez "ranges" = výchozí sezóna).
  */
 const SEASONS = [
-  { name: 'Hlavní sezóna', price: 3990, ranges: [['07-01', '08-31']] },
-  { name: 'Červen', price: 3790, ranges: [['06-01', '06-30']] },
-  { name: 'Květen a září', price: 3490, ranges: [['05-01', '05-31'], ['09-01', '09-30']] },
-  { name: 'Jaro, říjen a Vánoce', price: 2990, ranges: [['02-01', '04-30'], ['10-01', '10-31'], ['12-23', '12-31']] },
-  { name: 'Zima', price: 2290, ranges: null },                 // výchozí sezóna (listopad, 1.–22. 12., leden)
+  { name: 'Hlavní sezóna', price: 3900, ranges: [['07-01', '08-31']] },
+  { name: 'Vedlejší sezóna', price: 3300, ranges: [['06-01', '06-30'], ['09-01', '09-30']] },
+  { name: 'Ostatní', price: 2600, ranges: null },               // výchozí sezóna (leden–květen, říjen–prosinec)
 ];
 const PRICE_TIERS = [{ from: 11, discount: 0.10 }, { from: 21, discount: 0.15 }];  // sleva za délku pronájmu
 const SERVICE_FEE = 1500;                                       // jednorázový servisní poplatek (Kč, vč. DPH)
