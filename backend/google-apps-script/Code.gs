@@ -672,6 +672,7 @@ function doGet(e) {
     if (p.action === 'busy') return json_(busyResponse_(p));
     if (p.action === 'confirm' || p.action === 'reject' || p.action === 'cancel') return adminPage_(p);
     if (p.action === 'dashboard') return dashboardPage_(p);
+    if (p.action === 'markPaid') return markPaidPage_(p);
   } catch (err) {
     console.error('doGet: ' + err);
     if (p.action === 'busy') return json_({ ok: false, message: 'Obsazenost se nepodařilo načíst.' });
@@ -1010,12 +1011,16 @@ function verifyDashboardKey_(given) {
   return diff === 0;
 }
 function dashboardUrl_() { return webAppUrl_() + '?action=dashboard&key=' + encodeURIComponent(dashboardKey_()); }
+/** Odkaz pro přímé (ne)označení platby z přehledu – obyčejný <a href>, viz markPaidPage_. */
+function markPaidUrl_(id, field, value) {
+  return webAppUrl_() + '?action=markPaid&id=' + encodeURIComponent(id) + '&field=' + encodeURIComponent(field) +
+    '&value=' + (value ? '1' : '0') + '&key=' + encodeURIComponent(dashboardKey_());
+}
 
 function dashboardPage_(p) {
   if (!verifyDashboardKey_(p.key)) {
     return HtmlService.createHtmlOutput('<p>Přístup odepřen.</p>').setTitle('Přístup odepřen');
   }
-  const key = String(p.key);
   const rows = readRows_().filter(function (r) { return String(r.v[COL['Stav']]) !== STATUS.CANCELLED; });
   rows.sort(function (a, b) { return String(a.v[COL['Převzetí']]).localeCompare(String(b.v[COL['Vrácení']])); });
 
@@ -1044,10 +1049,10 @@ function dashboardPage_(p) {
       const sentTxt = '<div class="muted" style="font-size:11px">odesláno ' + escHtml_(sentAt.split(' ')[0]) + '</div>';
       if (paidAt) {
         return '<div><b style="color:#2f9e44">✓ uhrazeno</b><br>' + escHtml_(amountTxt) + sentTxt +
-          '<button class="small" onclick="togglePaid(\'' + id + '\',\'' + field + '\',false,this)">zrušit značku</button></div>';
+          '<a class="small" href="' + markPaidUrl_(id, field, false) + '">zrušit značku</a></div>';
       }
       return '<div><b style="color:#b3261e">neuhrazeno</b><br>' + escHtml_(amountTxt) + sentTxt +
-        '<button class="small ok" onclick="togglePaid(\'' + id + '\',\'' + field + '\',true,this)">Potvrdit platbu (pošle e-mail zákazníkovi)</button></div>';
+        '<a class="small ok" href="' + markPaidUrl_(id, field, true) + '">Potvrdit platbu (pošle e-mail zákazníkovi)</a></div>';
     }
 
     return '<tr' + (soon ? ' style="background:#fff7e6"' : '') + '>' +
@@ -1066,22 +1071,39 @@ function dashboardPage_(p) {
     'h1{font-size:1.3rem} table{border-collapse:collapse;width:100%;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.06)}' +
     'th,td{padding:8px 10px;border-bottom:1px solid #e3e8e0;text-align:left;font-size:13px;vertical-align:top}' +
     'th{background:#eef2ea;position:sticky;top:0} .muted{color:#777} ' +
-    'button.small{font-size:11px;margin-top:4px;padding:4px 8px;border-radius:6px;border:1px solid #ccc;background:#f4f6f1;cursor:pointer}' +
-    'button.small.ok{background:#2f9e44;color:#fff;border-color:#2f9e44}</style></head><body>' +
+    '.small{display:inline-block;font-size:11px;margin-top:4px;padding:4px 8px;border-radius:6px;border:1px solid #ccc;background:#f4f6f1;cursor:pointer;text-decoration:none;color:#14251b}' +
+    '.small.ok{background:#2f9e44;color:#fff;border-color:#2f9e44}</style></head><body>' +
     '<h1>Přehled plateb – ' + escHtml_(CONFIG.BRAND) + '</h1>' +
     '<p class="muted">Řádky „blíží se“ mají převzetí do 7 dnů. Platby se neověřují automaticky (skript nemá přístup k bankovnictví) – označte je prosím ručně po kontrole bankovního výpisu (platby jsou psané na jméno a termín zápůjčky). Tlačítko „Potvrdit platbu“ rovnou pošle zákazníkovi e-mail, že jsme platbu přijali; „zrušit značku“ e-mail neposílá.</p>' +
     '<table><thead><tr><th>Stav</th><th>Zákazník</th><th>Termín</th><th>Celkem</th><th>Záloha</th><th>Doplatek</th></tr></thead><tbody>' +
     trs + '</tbody></table>' +
-    '<script>var KEY=' + JSON.stringify(key) + ';' +
-    'function togglePaid(id,field,value,btn){btn.disabled=true;btn.textContent=value?"Odesílám e-mail…":"Ukládám…";' +
-    'google.script.run.withSuccessHandler(function(){location.reload();})' +
-    '.withFailureHandler(function(){alert("Nepodařilo se uložit, zkuste to znovu.");btn.disabled=false;})' +
-    '.setPaidStatus_(id,field,value,KEY);}</script>' +
     '</body></html>';
   return HtmlService.createHtmlOutput(html).setTitle('Přehled plateb');
 }
 
-/** Volá se ze stránky přehledu (google.script.run). Ručně označí/odznačí zálohu nebo doplatek jako uhrazené. */
+/** Odkaz z tlačítka v přehledu (obyčejný <a href>, ne google.script.run – spolehlivější napříč
+ * prohlížeči/rozšířeními). Označí/odznačí platbu a hned přesměruje zpět na přehled. */
+function markPaidPage_(p) {
+  if (!verifyDashboardKey_(p.key)) {
+    return HtmlService.createHtmlOutput('<p>Přístup odepřen.</p>').setTitle('Přístup odepřen');
+  }
+  let errMsg = '';
+  try {
+    setPaidStatus_(p.id, p.field, p.value === '1', p.key);
+  } catch (e) {
+    errMsg = String(e);
+  }
+  const back = dashboardUrl_();
+  const html = '<!DOCTYPE html><html lang="cs"><head><meta charset="utf-8">' +
+    (errMsg ? '' : '<meta http-equiv="refresh" content="0; url=' + back + '">') +
+    '<title>Přehled plateb</title></head><body style="font-family:Arial,sans-serif">' +
+    (errMsg ? '<p>Nepodařilo se uložit: ' + escHtml_(errMsg) + '</p>' : '<p>Hotovo, přesměrovávám zpět…</p>') +
+    '<p><a href="' + back + '">zpět na přehled plateb</a></p>' +
+    '</body></html>';
+  return HtmlService.createHtmlOutput(html).setTitle('Přehled plateb');
+}
+
+/** Volá markPaidPage_ (z odkazu v přehledu). Ručně označí/odznačí zálohu nebo doplatek jako uhrazené. */
 function setPaidStatus_(id, field, value, key) {
   if (!verifyDashboardKey_(key)) throw new Error('Neplatný klíč.');
   if (field !== 'Záloha uhrazena' && field !== 'Doplatek uhrazen') throw new Error('Neznámé pole.');
