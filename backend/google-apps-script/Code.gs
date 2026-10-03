@@ -21,7 +21,7 @@
 
 /* =========================== NASTAVENÍ (jediné místo) =========================== */
 const CONFIG = {
-  OWNER_EMAIL: 'f.motycka@seznam.cz',   // kam chodí poptávky a potvrzení (správce)
+  OWNER_EMAIL: 'obytnakvysocina@icloud.com',   // kam chodí poptávky a potvrzení (správce)
   OWNER_PHONE: '+420 732 574 782',             // uvádí se v e-mailech pro zákazníka
   CALENDAR_ID: '5990ff64f3e5f5f05869d3d0b27516a105001076221c4289f92f6b5cc70f2b26@group.calendar.google.com',
   BRAND: 'Obytňák Vysočina',

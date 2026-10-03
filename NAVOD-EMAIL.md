@@ -14,7 +14,7 @@ V souboru `rezervace.html` u formuláře (`<form id="resForm" …>`):
 
 | Atribut | Co znamená |
 |---|---|
-| `data-owner-email` | e-mail, kam se poptávka odešle (Vysočina: f.motycka@seznam.cz) |
+| `data-owner-email` | e-mail, kam se poptávka odešle (Vysočina: obytnakvysocina@icloud.com) |
 | `data-owner-phone` | telefon, který se ukáže při chybě odeslání a v potvrzení pro zákazníka |
 | `data-autoresponse` | text automatického potvrzení, které dostane zákazník |
 
