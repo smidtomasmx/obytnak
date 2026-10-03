@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jetzt buchen – Obytňák Vysočina – Carado A 464</title>
+  <meta name="description" content="Buchen Sie das Wohnmobil Carado A 464 – Verfügbarkeitskalender, Preisrechner und Anfrageformular.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="../src/logo.png"><link rel="stylesheet" href="../css/style.css">
+</head>
+<body data-page="rezervace">
+  <header class="site-header">
+    <div class="wrap">
+      <a class="logo" href="index.html" aria-label="Obytňák Vysočina – Startseite">
+        <img src="../src/logo.png" alt="Obytňák Vysočina" width="68" height="68">
+      </a>
+      <button class="burger" aria-label="Menü" aria-expanded="false" aria-controls="nav"><span></span></button>
+      <nav class="nav" id="nav">
+        <a href="obytne-auto.html">Das Wohnmobil</a>
+        <a href="fotogalerie.html">Galerie</a>
+        <a href="cenik.html">Preise</a>
+        <a href="rezervace.html" class="cta active" aria-current="page">Jetzt buchen</a>
+        <a href="kontakt.html">Kontakt</a>
+        <span class="lang-switch"><a href="../rezervace.html">CZ</a><a href="../en/rezervace.html">EN</a><a href="rezervace.html" class="active">DE</a><a href="../pl/rezervace.html">PL</a><a href="../es/rezervace.html">ES</a></span>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero small" style="background-image:url('../src/carado-a464-ext-predek.jpg');background-position:center 60%">
+    <div class="wrap">
+      <span class="eyebrow" style="color:#7bd88f">Buchung</span>
+      <h1>Buchen Sie Ihren Termin</h1>
+      <p class="lead">Schauen Sie in den Kalender, wählen Sie Ihre Tage und senden Sie uns eine Anfrage.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="res-layout">
+
+        <!-- KALENDER -->
+        <div class="panel">
+          <h2 style="font-size:1.5rem">1. Verfügbarkeitskalender</h2>
+          <p class="muted">Gebuchte Tage werden blau angezeigt. Klicken Sie zuerst den Abholtag, dann den Rückgabetag – die Daten werden unten automatisch übernommen.</p>
+          <div id="calBox" data-calendar-id=""></div>
+          <div class="legend">
+            <span><i style="background:#4285f4"></i>Gebucht</span>
+            <span><i style="background:#dcdcdc"></i>Frei</span>
+            <span><i style="background:#2f9e44"></i>Ihre Auswahl</span>
+          </div>
+          <details class="price-data">
+            <summary>Für den Preisrechner verwendete Tarife</summary>
+            <div class="table-wrap">
+              <table id="priceTable">
+                <thead><tr><th>Saison</th><th>Zeitraum</th><th>Min. Tage</th><th>Preis / Tag</th></tr></thead>
+                <tbody>
+                <tr data-ranges="07-01/08-31"><td>Hauptsaison</td><td>Juli – August</td><td>5</td><td>€156</td></tr>
+                <tr data-ranges="06-01/06-30, 09-01/09-30"><td>Nebensaison</td><td>Juni, September</td><td>2</td><td>€132</td></tr>
+                <tr data-ranges="default"><td>Nebensaison II</td><td>Jan – Mai, Okt – Dez</td><td>2</td><td>€104</td></tr>
+                <tr><td>Servicepauschale</td><td>einmalig</td><td>–</td><td>€60</td></tr>
+                <tr><td>Kaution (rückzahlbar)</td><td>einmalig</td><td>–</td><td>€1000</td></tr>
+                </tbody>
+                <tbody>
+                <tr data-from="11"><td colspan="3">Rabatt ab 11 Tagen</td><td>10 %</td></tr>
+                <tr data-from="21"><td colspan="3">Rabatt ab 21 Tagen</td><td>15 %</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="note">Rückzahlbare Kaution: <b id="pdDeposit">€1000</b> · Servicepauschale: <b id="pdService">€60</b> · Kilometer: unbegrenzt · Alle Preise inkl. MwSt. Beträge in Euro sind eine ungefähre Umrechnung – maßgeblich ist der Betrag in tschechischen Kronen (Vertrag, Rechnungen und Kaution laufen in CZK).</p>
+          </details>
+        </div>
+
+        <!-- FORMULAR -->
+        <div>
+          <div class="panel">
+            <h2 style="font-size:1.5rem">2. Ihre Anfrage</h2>
+            <form id="resForm" novalidate
+              data-brand="Obytňák Vysočina"
+              data-vehicle="Carado A 464"
+              data-owner-email="obytnakvysocina@icloud.com"
+              data-owner-phone="+420 732 574 782"
+              data-api-url="https://script.google.com/macros/s/AKfycbyZKFp85HZH610IjIRHhM2wTtsMyhWGSGmI5-HHJqg2BTxpgFw87GL0V5pj4Zmbz_7k0g/exec"
+              data-autoresponse="Hallo, vielen Dank für Ihre Anfrage – sie ist bei uns eingegangen. Wir bestätigen sie innerhalb von 24 Stunden. Bei Fragen rufen Sie uns an unter +420 732 574 782. Mit freundlichen Grüßen, Obytňák Vysočina">
+              <div class="row2">
+                <div><label for="dateFrom">Abholung (erster Tag)</label><input type="date" id="dateFrom" name="dateFrom" required></div>
+                <div><label for="dateTo">Rückgabe (letzter Tag)</label><input type="date" id="dateTo" name="dateTo" required></div>
+              </div>
+              <p class="err" id="dateErr" role="alert"></p>
+
+              <div>
+                <label for="guests">Anzahl der Personen</label>
+                <select id="guests" name="guests">
+                  <option>1</option><option selected>2</option><option>3</option>
+                  <option>4</option><option>5</option><option>6</option>
+                </select>
+              </div>
+
+              <div class="row2">
+                <div><label for="name">Vor- und Nachname</label><input id="name" name="name" autocomplete="name" required><p class="err field-err" id="err-name" role="alert"></p></div>
+                <div><label for="phone">Telefon</label><input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="+420 123 456 789" required><p class="err field-err" id="err-phone" role="alert"></p></div>
+              </div>
+              <div><label for="email">E-Mail</label><input id="email" name="email" type="email" autocomplete="email" placeholder="name@example.com" required><p class="err field-err" id="err-email" role="alert"></p></div>
+
+              <fieldset class="extras">
+                <legend>Zusatzleistungen (einmalig)</legend>
+                <label class="check"><input type="checkbox" name="extra" value="Tretroller" data-price="40"> Tretroller <small>€40</small></label>
+                <label class="check"><input type="checkbox" name="extra" value="Bettwäsche" data-price="0" id="extraLozni"> Bettwäsche <small>Kostenlos</small></label>
+                <div id="lozniQtyRow" hidden style="margin:8px 0 0 28px;max-width:220px">
+                  <label for="lozniQty">Anzahl der Bettwäsche-Sets</label>
+                  <select id="lozniQty" name="lozniQty">
+                    <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                    <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+                  </select>
+                </div>
+              </fieldset>
+              <div><label for="note">Anmerkung (optional)</label><textarea id="note" name="note" placeholder="Wohin soll die Reise gehen, Fragen…"></textarea></div>
+
+              <p class="err" id="formErr" role="alert"></p>
+              <div class="summary" id="summary" aria-live="polite"></div>
+              <button class="btn block" type="submit">Anfrage per E-Mail senden</button>
+              <p class="note" style="margin:0">Diese Anfrage ist unverbindlich. Die Buchung ist erst nach unserer Bestätigung gültig, die spätestens innerhalb von 24 Stunden erfolgt.</p>
+              <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
+            </form>
+            <div id="sent" class="info-box" hidden></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section alt">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">So funktioniert's</span>
+        <h2>Wie geht es weiter?</h2>
+      </div>
+      <div class="steps">
+        <div class="step"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 16V8a2 2 0 012-2h11a3 3 0 013 3v1h1.5A2.5 2.5 0 0122 12.5V16M2 16h2.5M9.5 16h5M19.5 16H22M7 18.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM17 18.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM6 10h6"/></svg></span><h3>Sie wählen das Fahrzeug</h3><p>Carado A 464.</p></div>
+        <div class="step"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4"/></svg></span><h3>Sie wählen den Termin</h3><p>Laut Verfügbarkeitskalender.</p></div>
+        <div class="step"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11a3.5 3.5 0 100-7 3.5 3.5 0 000 7zM2 20c0-3.5 3-6 7-6s7 2.5 7 6M17 4.5a3.5 3.5 0 010 6.5M18 14.5c2.5.6 4 2.6 4 5.5"/></svg></span><h3>Sie geben Ihre Daten ein</h3><p>Name, Telefon und E-Mail.</p></div>
+        <div class="step"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18v12H3zM3 7l9 6 9-6"/></svg></span><h3>Sie senden die Anfrage</h3><p>Sie erreicht uns per E-Mail.</p></div>
+        <div class="step"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><h3>Wir bestätigen</h3><p>Wir senden die Anzahlungsaufforderung und Anweisungen.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="foot-grid">
+        <div>
+          <a class="logo footer-logo" href="index.html"><img src="../src/logo.png" alt="Obytňák Vysočina" width="110" height="110"></a>
+          <p>Wohnmobilvermietung Carado A 464. Starten Sie sorgenfrei ins Abenteuer – das Fahrzeug ist startklar, versichert und wartet nur auf Sie.</p>
+          <div class="socials">
+            <a href="#" aria-label="Instagram" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10a4 4 0 014 4v10a4 4 0 01-4 4H7a4 4 0 01-4-4V7a4 4 0 014-4zM12 16a4 4 0 100-8 4 4 0 000 8zM17.5 6.5h.01"/></svg></a>
+            <a href="#" aria-label="Facebook" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 8h3V4h-3a4 4 0 00-4 4v3H7v4h3v6h4v-6h3l1-4h-4V8z"/></svg></a>
+          </div>
+        </div>
+        <div>
+          <h4>Menü</h4>
+          <ul>
+            <li><a href="obytne-auto.html">Das Wohnmobil</a></li>
+            <li><a href="fotogalerie.html">Galerie</a></li>
+            <li><a href="cenik.html">Preise</a></li>
+            <li><a href="rezervace.html">Jetzt buchen</a></li>
+            <li><a href="kontakt.html">Kontakt</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Nützliches</h4>
+          <ul>
+            <li><a href="cenik.html#podminky">Mietbedingungen</a></li>
+            <li><a href="obchodni-podminky.html">AGB</a></li>
+            <li><a href="ochrana-osobnich-udaju.html">Datenschutz</a></li>
+            <li><a href="rezervace.html">Freie Termine</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Kontakt</h4>
+          <ul>
+            <li><a href="tel:+420732574782">+420 732 574 782</a></li>
+            <li><a href="mailto:obytnakvysocina@icloud.com">obytnakvysocina@icloud.com</a></li>
+            <li>Nad Cihelnou 663, 582 91 Světlá nad Sázavou, Tschechien</li>
+            <li>Mo–So 8:00–20:00 (nach Vereinbarung)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="copy">
+        <span>© <span id="year">2026</span> Obytňák Vysočina. Alle Rechte vorbehalten.</span>
+        <span>Wohnmobilvermietung Carado A 464</span>
+      </div>
+    </div>
+  </footer>
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -83,6 +83,10 @@ p { margin: 0 0 1em; }
 .nav a.active { color: var(--green-dark); font-weight: 600; }
 .nav a.cta { background: var(--green); color: #fff; margin-left: 6px; }
 .nav a.cta:hover { background: var(--green-dark); }
+.lang-switch { display: inline-flex; align-items: center; gap: 2px; margin-left: 10px; padding-left: 10px; border-left: 1px solid var(--line); }
+.lang-switch a { padding: 5px 8px; border-radius: 999px; text-decoration: none; color: var(--ink-soft); font-weight: 600; font-size: .78rem; letter-spacing: .02em; transition: background .2s, color .2s; }
+.lang-switch a:hover { background: var(--bg-alt); color: var(--ink); }
+.lang-switch a.active { color: var(--green-dark); background: var(--bg-alt); }
 .burger { display: none; width: 44px; height: 44px; border: 0; background: transparent; cursor: pointer; border-radius: 10px; }
 .burger span, .burger span::before, .burger span::after { display: block; width: 24px; height: 2.5px; background: var(--ink); border-radius: 2px; position: relative; margin: 0 auto; transition: transform .25s, background .25s; content: ""; }
 .burger span::before { position: absolute; top: -7px; left: 0; }
@@ -102,6 +106,8 @@ p { margin: 0 0 1em; }
   .nav.open { transform: none; visibility: visible; }
   .nav a { padding: 14px 12px; font-size: 1.05rem; border-bottom: 1px solid var(--line); border-radius: 0; }
   .nav a.cta { margin: 14px 0 0; text-align: center; border-radius: 999px; border: 0; }
+  .lang-switch { margin: 14px 0 0; padding: 14px 0 0; border-left: 0; border-top: 1px solid var(--line); justify-content: center; width: 100%; }
+  .lang-switch a { padding: 8px 10px; font-size: .85rem; border-bottom: 0 !important; }
 }
 
 /* ---------- Hero ---------- */
