@@ -309,7 +309,6 @@ function initReservation() {
   const state = () => ({
     from: f.dateFrom.value ? fromIso(f.dateFrom.value) : null,
     to: f.dateTo.value ? fromIso(f.dateTo.value) : null,
-    guests: +f.guests.value || 1,
   });
   const chosenExtras = () => $$("input[name=extra]:checked", form).map(c => {
     if (c.value === "Ropa de cama" && f.lozniQty) return { name: `Ropa de cama (${f.lozniQty.value}×)`, price: num(c.dataset.price) };
@@ -318,9 +317,13 @@ function initReservation() {
   if (f.extraLozni && f.lozniQty) {
     const lozniRow = $("#lozniQtyRow", form);
     f.extraLozni.addEventListener("change", () => {
-      if (f.extraLozni.checked) { f.lozniQty.value = f.guests.value; lozniRow.hidden = false; }
+      if (f.extraLozni.checked) { f.lozniQty.value = "2"; lozniRow.hidden = false; }
       else lozniRow.hidden = true;
     });
+  }
+  if (f.isBusiness) {
+    const bizFields = $("#bizFields", form);
+    f.isBusiness.addEventListener("change", () => { bizFields.hidden = !f.isBusiness.checked; });
   }
 
   const validate = s => {
@@ -423,7 +426,10 @@ function initReservation() {
       const fail = msg => { $("#formErr").textContent = msg; };
       apiRequest(API, {
         action: "inquiry", requestId, elapsed: Date.now() - openedAt, website: f.website ? f.website.value : "",
-        name: f.name.value.trim(), phone: f.phone.value.trim(), email: custEmail, guests: s.guests,
+        name: f.name.value.trim(), phone: f.phone.value.trim(), email: custEmail,
+        isBusiness: f.isBusiness && f.isBusiness.checked ? "1" : "",
+        bizName: f.bizName ? f.bizName.value.trim() : "", bizAddress: f.bizAddress ? f.bizAddress.value.trim() : "",
+        bizIc: f.bizIc ? f.bizIc.value.trim() : "", bizDic: f.bizDic ? f.bizDic.value.trim() : "",
         from: iso(s.from), to: iso(s.to), note: f.note.value.trim(), extras: extrasText, estimate: kc(r.total) + " (con IVA, aprox.)",
       }).then(res => {
         if (res && res.ok) {
@@ -449,7 +455,7 @@ function initReservation() {
     const calUrl = "https://calendar.google.com/calendar/render?action=TEMPLATE"
       + "&text=" + encodeURIComponent("Reserva: " + f.name.value.trim())
       + "&dates=" + iso(s.from).replace(/-/g, "") + "/" + dayAfter(iso(s.to)).replace(/-/g, "")
-      + "&details=" + encodeURIComponent(`Teléfono: ${f.phone.value.trim()}\nCorreo: ${f.email.value.trim()}\nPersonas: ${s.guests}`);
+      + "&details=" + encodeURIComponent(`Teléfono: ${f.phone.value.trim()}\nCorreo: ${f.email.value.trim()}`);
     const subject = `Solicitud de reserva: ${fmtDate(s.from)} – ${fmtDate(s.to)} (${f.name.value.trim()})`;
     const custEmail = f.email.value.trim();
 
@@ -463,7 +469,6 @@ function initReservation() {
       "Recogida": fmtDate(s.from),
       "Devolución": fmtDate(s.to),
       "Número de días": r.days,
-      "Personas": s.guests,
       "Extras": extrasText || "–",
       "Precio estimado (con IVA, aprox.)": kc(r.total),
       "Observaciones": f.note.value.trim() || "–",

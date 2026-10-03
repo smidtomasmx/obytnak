@@ -328,19 +328,23 @@ function initReservation() {
   const state = () => ({
     from: f.dateFrom.value ? fromIso(f.dateFrom.value) : null,
     to: f.dateTo.value ? fromIso(f.dateTo.value) : null,
-    guests: +f.guests.value || 1,
   });
   const chosenExtras = () => $$("input[name=extra]:checked", form).map(c => {
     if (c.value === "Bed linen" && f.lozniQty) return { name: `Bed linen (${f.lozniQty.value}×)`, price: num(c.dataset.price) };
     return { name: c.value, price: num(c.dataset.price) };
   });
-  // The bed-linen quantity selector only shows once checked; default count = current number of guests.
+  // The bed-linen quantity selector only shows once checked.
   if (f.extraLozni && f.lozniQty) {
     const lozniRow = $("#lozniQtyRow", form);
     f.extraLozni.addEventListener("change", () => {
-      if (f.extraLozni.checked) { f.lozniQty.value = f.guests.value; lozniRow.hidden = false; }
+      if (f.extraLozni.checked) { f.lozniQty.value = "2"; lozniRow.hidden = false; }
       else lozniRow.hidden = true;
     });
+  }
+  // Optional business invoice details – the fields only show once checked.
+  if (f.isBusiness) {
+    const bizFields = $("#bizFields", form);
+    f.isBusiness.addEventListener("change", () => { bizFields.hidden = !f.isBusiness.checked; });
   }
 
   const validate = s => {
@@ -447,7 +451,10 @@ function initReservation() {
       const fail = msg => { $("#formErr").textContent = msg; };
       apiRequest(API, {
         action: "inquiry", requestId, elapsed: Date.now() - openedAt, website: f.website ? f.website.value : "",
-        name: f.name.value.trim(), phone: f.phone.value.trim(), email: custEmail, guests: s.guests,
+        name: f.name.value.trim(), phone: f.phone.value.trim(), email: custEmail,
+        isBusiness: f.isBusiness && f.isBusiness.checked ? "1" : "",
+        bizName: f.bizName ? f.bizName.value.trim() : "", bizAddress: f.bizAddress ? f.bizAddress.value.trim() : "",
+        bizIc: f.bizIc ? f.bizIc.value.trim() : "", bizDic: f.bizDic ? f.bizDic.value.trim() : "",
         from: iso(s.from), to: iso(s.to), note: f.note.value.trim(), extras: extrasText, estimate: kc(r.total) + " (incl. VAT, approx.)",
       }).then(res => {
         if (res && res.ok) {
@@ -473,7 +480,7 @@ function initReservation() {
     const calUrl = "https://calendar.google.com/calendar/render?action=TEMPLATE"
       + "&text=" + encodeURIComponent("Booking: " + f.name.value.trim())
       + "&dates=" + iso(s.from).replace(/-/g, "") + "/" + dayAfter(iso(s.to)).replace(/-/g, "")
-      + "&details=" + encodeURIComponent(`Phone: ${f.phone.value.trim()}\nE-mail: ${f.email.value.trim()}\nGuests: ${s.guests}`);
+      + "&details=" + encodeURIComponent(`Phone: ${f.phone.value.trim()}\nE-mail: ${f.email.value.trim()}`);
     const subject = `Booking request: ${fmtDate(s.from)} – ${fmtDate(s.to)} (${f.name.value.trim()})`;
     const custEmail = f.email.value.trim();
 
@@ -488,7 +495,6 @@ function initReservation() {
       "Pick-up": fmtDate(s.from),
       "Return": fmtDate(s.to),
       "Number of days": r.days,
-      "Guests": s.guests,
       "Extras": extrasText || "–",
       "Estimated price (incl. VAT, approx.)": kc(r.total),
       "Note": f.note.value.trim() || "–",

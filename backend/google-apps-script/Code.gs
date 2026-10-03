@@ -82,13 +82,14 @@ const SEASONS = [
   { name: 'Vedlejší sezóna', price: 3300, ranges: [['06-01', '06-30'], ['09-01', '09-30']] },
   { name: 'Ostatní', price: 2600, ranges: null },               // výchozí sezóna (leden–květen, říjen–prosinec)
 ];
-const PRICE_TIERS = [{ from: 11, discount: 0.10 }, { from: 21, discount: 0.15 }];  // sleva za délku pronájmu
+const PRICE_TIERS = [{ from: 11, discount: 0.10 }];  // sleva za délku pronájmu
 const SERVICE_FEE = 1500;                                       // jednorázový servisní poplatek (Kč, vč. DPH)
 
 const STATUS = { INQUIRY: 'POPTÁVKA', CONFIRMED: 'POTVRZENO', CANCELLED: 'ZRUŠENO' };
 const COLS = ['ID', 'Vytvořeno', 'Stav', 'Jméno', 'Telefon', 'E-mail', 'Osob', 'Převzetí', 'Vrácení',
               'Dní', 'Poznámka', 'ID události v kalendáři', 'Aktualizováno', 'RequestId', 'Konečná faktura',
-              'Záloha odesláno', 'Záloha uhrazena', 'Doplatek uhrazen'];
+              'Záloha odesláno', 'Záloha uhrazena', 'Doplatek uhrazen',
+              'Firma', 'Adresa firmy', 'IČ zákazníka', 'DIČ zákazníka'];
 const COL = COLS.reduce((o, n, i) => { o[n] = i; return o; }, {});
 
 /* ================================ POMOCNÉ FUNKCE ================================ */
@@ -197,10 +198,21 @@ function nextDocNumber_(kind) {
   return n;
 }
 
+/** Blok „Odběratel" pro PDF doklady – u podnikatele (vyplněné IČ) ukáže firmu, adresu, IČ a DIČ. */
+function customerBlock_(o) {
+  if (o.bizName || o.bizIc) {
+    return o.bizName + '\n' + (o.bizAddress ? o.bizAddress + '\n' : '') + o.name + '\n' + o.phone + '\n' + o.email +
+      (o.bizIc ? '\nIČ: ' + o.bizIc : '') + (o.bizDic ? '\nDIČ: ' + o.bizDic : '');
+  }
+  return o.name + '\n' + o.phone + '\n' + o.email;
+}
+
 /**
- * Vytvoří PDF výzvy k úhradě (zálohy, nebo při pozdním potvrzení celé částky) přes dočasný Google
- * Dokument (vytvoří ho, naplní, exportuje do PDF a dokument smaže – v Disku po sobě nenechává žádné
- * trvalé soubory, jen e-mailovou přílohu). percent = 1 znamená úhradu celého nájemného najednou.
+ * Vytvoří PDF ZÁLOHOVÉ FAKTURY (daňový doklad) pro podnikatele – volá se jen tehdy, je-li u rezervace
+ * vyplněné DIČ (viz sendDepositInvoice_; běžným zákazníkům se žádný dokument negeneruje, jen text
+ * v e-mailu). Přes dočasný Google Dokument (vytvoří ho, naplní, exportuje do PDF a dokument smaže –
+ * v Disku po sobě nenechává žádné trvalé soubory, jen e-mailovou přílohu). percent = 1 znamená úhradu
+ * celého nájemného najednou (pozdě potvrzená rezervace).
  */
 function buildPaymentNoticePdf_(o, calc, percent) {
   const isFull = percent >= 1;
@@ -217,17 +229,15 @@ function buildPaymentNoticePdf_(o, calc, percent) {
     const body = doc.getBody();
     body.setMarginTop(46).setMarginBottom(46).setMarginLeft(56).setMarginRight(56);
 
-    body.appendParagraph((isFull ? 'VÝZVA K ÚHRADĚ č. ' : 'VÝZVA K ÚHRADĚ ZÁLOHY č. ') + docNo).setHeading(DocumentApp.ParagraphHeading.TITLE);
-    const taxNote = body.appendParagraph('NEDAŇOVÝ DOKLAD');
-    taxNote.setBold(true).setFontSize(11).setForegroundColor('#B3261E').setSpacingAfter(2);
-    body.appendParagraph('Tento doklad nemá charakter daňového dokladu. Daňový doklad bude vystaven po úhradě.').setItalic(true).setSpacingAfter(14);
+    body.appendParagraph((isFull ? 'FAKTURA č. ' : 'ZÁLOHOVÁ FAKTURA č. ') + docNo).setHeading(DocumentApp.ParagraphHeading.TITLE);
+    body.appendParagraph('Daňový doklad.').setItalic(true).setSpacingAfter(14);
 
     const partiesTable = body.appendTable([
       ['Dodavatel', 'Odběratel'],
       [
         SUPPLIER.name + '\n' + SUPPLIER.addressLine1 + '\n' + SUPPLIER.addressLine2 + '\n' + SUPPLIER.country +
         '\nIČ: ' + SUPPLIER.ic + '\nDIČ: ' + SUPPLIER.dic,
-        o.name + '\n' + o.phone + '\n' + o.email,
+        customerBlock_(o),
       ],
     ]);
     partiesTable.getRow(0).getCell(0).setBold(true);
@@ -284,33 +294,60 @@ function buildPaymentNoticePdf_(o, calc, percent) {
 }
 
 /**
- * Sestaví a e-mailem pošle výzvu k úhradě zákazníkovi (PDF příloha), po úspěšném POTVRZENÍ rezervace.
- * Je-li termín převzetí už za CONFIG.FULL_PAYMENT_THRESHOLD_DAYS dní nebo méně (pozdě potvrzená
- * rezervace), pošle se rovnou výzva na CELOU částku místo zálohy – na rozdělení na zálohu/doplatek
- * už není reálný čas, a konečná faktura se pak touto rezervací vůbec nezabývá (viz sendDueFinalInvoices_).
+ * Po úspěšném POTVRZENÍ rezervace pošle zákazníkovi pokyny k platbě zálohy (nebo při pozdním potvrzení
+ * k platbě celé částky, viz CONFIG.FULL_PAYMENT_THRESHOLD_DAYS).
+ *
+ * - Běžný zákazník (bez vyplněného DIČ): žádný PDF dokument, jen prostý text v e-mailu s částkou,
+ *   splatností a odkazem na bankovní účet, který zákazník zná z obchodních podmínek.
+ * - Podnikatel (vyplněné DIČ): doklad MÁ být daňový, proto se vystaví a přiloží skutečná (zálohová)
+ *   faktura s IČ/DIČ zákazníka (viz buildPaymentNoticePdf_).
  */
 function sendDepositInvoice_(o) {
   const calc = calcRentalTotal_(o.from, o.to);
   const daysLeft = daysBetween_(todayYmd_(), o.from);
   const isFull = daysLeft <= CONFIG.FULL_PAYMENT_THRESHOLD_DAYS;
-  const inv = buildPaymentNoticePdf_(o, calc, isFull ? 1 : CONFIG.DEPOSIT_PERCENT);
-  const attachments = [inv.blob];
-  // Náhled smlouvy o nájmu – chyba při jeho generování nesmí zablokovat odeslání výzvy k úhradě.
-  try { attachments.push(buildContractPreviewPdf_(o, calc)); } catch (e) { console.error('Náhled smlouvy: ' + e); }
+  const percent = isFull ? 1 : CONFIG.DEPOSIT_PERCENT;
+  const amount = Math.round(calc.total * percent);
+  let due = addBusinessDays_(new Date(), CONFIG.INVOICE_DUE_BUSINESS_DAYS);
+  const dayBeforePickup = addDays_(parseYmd_(o.from), -1);
+  if (due > dayBeforePickup) due = dayBeforePickup;
   const paymentNote = o.name + ', ' + czDate_(o.from) + '–' + czDate_(o.to);
-  const text = 'Dobrý den,\n\nv příloze zasíláme výzvu k úhradě' + (inv.isFull ? ' celého nájemného' : ' zálohy') + ' č. ' + inv.docNo +
-    ' (nedaňový doklad) a náhled smlouvy o nájmu k Vaší rezervaci obytného vozu ' + CONFIG.VEHICLE +
-    ' (' + czDate_(o.from) + ' – ' + czDate_(o.to) + ').\n\nK úhradě: ' + czMoney_(inv.amount) +
-    '\nSplatnost: ' + Utilities.formatDate(inv.due, tz_(), 'dd.MM.yyyy') +
-    '\nBankovní spojení: ' + SUPPLIER.bankAccount + '\nDo zprávy pro příjemce / poznámky k platbě uveďte: ' + paymentNote +
-    (inv.isFull ? '\n\nTermín převzetí je už za méně než ' + CONFIG.FULL_PAYMENT_THRESHOLD_DAYS + ' dní, proto se hradí celé nájemné najednou.' : '') +
-    '\n\nTermín je pevně rezervovaný až po připsání platby na účet a po vrácení jednoho podepsaného výtisku smlouvy. Kdyby cokoli, volejte ' + CONFIG.OWNER_PHONE +
+
+  if (o.bizDic) {
+    // Podnikatel s DIČ -> opravdová (zálohová) faktura jako příloha.
+    const inv = buildPaymentNoticePdf_(o, calc, percent);
+    const attachments = [inv.blob];
+    try { attachments.push(buildContractPreviewPdf_(o, calc)); } catch (e) { console.error('Náhled smlouvy: ' + e); }
+    const text = 'Dobrý den,\n\nv příloze zasíláme ' + (inv.isFull ? 'fakturu' : 'zálohovou fakturu') + ' č. ' + inv.docNo +
+      ' a náhled smlouvy o nájmu k Vaší rezervaci obytného vozu ' + CONFIG.VEHICLE +
+      ' (' + czDate_(o.from) + ' – ' + czDate_(o.to) + ').\n\nK úhradě: ' + czMoney_(inv.amount) +
+      '\nSplatnost: ' + Utilities.formatDate(inv.due, tz_(), 'dd.MM.yyyy') +
+      '\nBankovní spojení: ' + SUPPLIER.bankAccount + '\nDo zprávy pro příjemce / poznámky k platbě uveďte: ' + paymentNote +
+      (inv.isFull ? '\n\nTermín převzetí je už za méně než ' + CONFIG.FULL_PAYMENT_THRESHOLD_DAYS + ' dní, proto se hradí celé nájemné najednou.' : '') +
+      '\n\nTermín je pevně rezervovaný až po připsání platby na účet a po vrácení jednoho podepsaného výtisku smlouvy. Kdyby cokoli, volejte ' + CONFIG.OWNER_PHONE +
+      '.\n\nS pozdravem\n' + CONFIG.BRAND;
+    MailApp.sendEmail({
+      to: o.email, subject: (inv.isFull ? 'Faktura' : 'Zálohová faktura') + ' č. ' + inv.docNo + ' – ' + CONFIG.BRAND, body: text,
+      replyTo: CONFIG.OWNER_EMAIL, name: CONFIG.BRAND, attachments: attachments,
+    });
+    return { amount: inv.amount, due: inv.due, isFull: inv.isFull };
+  }
+
+  // Běžný zákazník -> žádný dokument, jen pokyny k platbě přímo v textu e-mailu.
+  const text = 'Dobrý den,\n\n' + (isFull ? 'prosíme o úhradu celého nájemného ve výši ' : 'prosíme o úhradu zálohy ve výši ') + czMoney_(amount) +
+    ' na účet, který znáte z obchodních podmínek (' + SUPPLIER.bankAccount + '). Do poznámky k platbě uveďte: ' + paymentNote + '.' +
+    '\nSplatnost: ' + Utilities.formatDate(due, tz_(), 'dd.MM.yyyy') +
+    (isFull
+      ? '\n\nTermín převzetí je už za méně než ' + CONFIG.FULL_PAYMENT_THRESHOLD_DAYS + ' dní, proto se hradí celé nájemné najednou – zálohu ani doplatek už neúčtujeme zvlášť.'
+      : '\n\nDoplatek nájemného (' + czMoney_(calc.total - amount) + ') zašleme nejpozději ' + CONFIG.FINAL_INVOICE_DAYS_BEFORE +
+        ' dnů před termínem převzetí vozidla; uhraďte ho prosím nejpozději ' + CONFIG.FINAL_INVOICE_DUE_DAYS_BEFORE + ' dnů před termínem převzetí vozidla.') +
+    '\n\nTermín pronájmu je pevně rezervovaný až po připsání platby na účet a po vrácení jednoho podepsaného výtisku smlouvy o nájmu. Kdyby cokoli, volejte ' + CONFIG.OWNER_PHONE +
     '.\n\nS pozdravem\n' + CONFIG.BRAND;
   MailApp.sendEmail({
-    to: o.email, subject: 'Výzva k úhradě' + (inv.isFull ? '' : ' zálohy') + ' č. ' + inv.docNo + ' – ' + CONFIG.BRAND, body: text,
-    replyTo: CONFIG.OWNER_EMAIL, name: CONFIG.BRAND, attachments: attachments,
+    to: o.email, subject: (isFull ? 'Platební pokyny' : 'Platební pokyny – záloha') + ' – ' + CONFIG.BRAND, body: text,
+    replyTo: CONFIG.OWNER_EMAIL, name: CONFIG.BRAND,
   });
-  return inv;
+  return { amount: amount, due: due, isFull: isFull };
 }
 
 /* ==================================== KONEČNÁ FAKTURA (DOPLATEK, PDF) ==================================== */
@@ -340,7 +377,7 @@ function buildFinalInvoicePdf_(o, calc) {
       [
         SUPPLIER.name + '\n' + SUPPLIER.addressLine1 + '\n' + SUPPLIER.addressLine2 + '\n' + SUPPLIER.country +
         '\nIČ: ' + SUPPLIER.ic + '\nDIČ: ' + SUPPLIER.dic,
-        o.name + '\n' + o.phone + '\n' + o.email,
+        customerBlock_(o),
       ],
     ]);
     partiesTable.getRow(0).getCell(0).setBold(true);
@@ -627,6 +664,8 @@ function rowToObj_(r) {
     phone: String(v[COL['Telefon']]), email: String(v[COL['E-mail']]), guests: v[COL['Osob']],
     from: cellYmd_(v[COL['Převzetí']]), to: cellYmd_(v[COL['Vrácení']]), days: v[COL['Dní']],
     note: String(v[COL['Poznámka']]), eventId: String(v[COL['ID události v kalendáři']] || ''),
+    bizName: String(v[COL['Firma']] || ''), bizAddress: String(v[COL['Adresa firmy']] || ''),
+    bizIc: String(v[COL['IČ zákazníka']] || ''), bizDic: String(v[COL['DIČ zákazníka']] || ''),
   };
 }
 function setRowFields_(rowIndex, fields) {
@@ -714,8 +753,14 @@ function validateInquiry_(p) {
   if (!/^\+?[0-9 ()\-]{9,25}$/.test(d.phone) || digits.length < 9 || digits.length > 15) errors.phone = 'Zadejte platný telefon.';
   d.email = clean_(p.email, 120).toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(d.email)) errors.email = 'Zadejte platný e-mail.';
-  d.guests = parseInt(p.guests, 10);
-  if (!(d.guests >= 1 && d.guests <= CONFIG.MAX_GUESTS)) errors.guests = 'Počet osob musí být 1 až ' + CONFIG.MAX_GUESTS + '.';
+  // Fakturační údaje pro podnikatele (volitelné) – je-li zaškrtnuto, vyžadujeme aspoň název firmy a IČ.
+  d.isBusiness = !!p.isBusiness;
+  d.bizName = d.isBusiness ? clean_(p.bizName, 120) : '';
+  d.bizAddress = d.isBusiness ? clean_(p.bizAddress, 200) : '';
+  d.bizIc = d.isBusiness ? clean_(p.bizIc, 20) : '';
+  d.bizDic = d.isBusiness ? clean_(p.bizDic, 20) : '';
+  if (d.isBusiness && !d.bizName) errors.bizName = 'Zadejte název firmy.';
+  if (d.isBusiness && !d.bizIc) errors.bizIc = 'Zadejte IČ.';
   d.note = clean_(p.note, 1000);
   d.estimate = clean_(p.estimate, 40);
   d.extras = clean_(p.extras, 200);
@@ -793,12 +838,15 @@ function submitInquiry_(p) {
     row[COL['Jméno']] = d.name;
     row[COL['Telefon']] = d.phone;
     row[COL['E-mail']] = d.email;
-    row[COL['Osob']] = d.guests;
     row[COL['Převzetí']] = d.from;
     row[COL['Vrácení']] = d.to;
     row[COL['Dní']] = d.days;
     row[COL['Poznámka']] = (d.extras ? 'Doplňky: ' + d.extras + (d.note ? '. ' : '') : '') + d.note;   // doplňky se ukládají do poznámky (tabulka nemá vlastní sloupec)
     row[COL['RequestId']] = requestId;
+    row[COL['Firma']] = d.bizName;
+    row[COL['Adresa firmy']] = d.bizAddress;
+    row[COL['IČ zákazníka']] = d.bizIc;
+    row[COL['DIČ zákazníka']] = d.bizDic;
     rowIndex = appendInquiryRow_(row);
 
     // 4) e-mail správci (když se nepodaří, poptávku nevedeme, ať ji zákazník zkusí znovu)
@@ -818,11 +866,13 @@ function submitInquiry_(p) {
 
 /* ==================================== E-MAILY ==================================== */
 function summaryLines_(o) {
-  return [
-    ['Jméno', o.name], ['Telefon', o.phone], ['E-mail', o.email], ['Počet osob', o.guests],
+  const lines = [
+    ['Jméno', o.name], ['Telefon', o.phone], ['E-mail', o.email],
     ['Převzetí', czDate_(o.from)], ['Vrácení', czDate_(o.to)], ['Počet dní', o.days],
-    ['Poznámka', o.note ? o.note : '–'],
   ];
+  if (o.bizName) lines.push(['Firma', o.bizName + (o.bizIc ? ' (IČ ' + o.bizIc + (o.bizDic ? ', DIČ ' + o.bizDic : '') + ')' : '')]);
+  lines.push(['Poznámka', o.note ? o.note : '–']);
+  return lines;
 }
 function sendOwnerInquiry_(id, d) {
   const confirmUrl = actionLink_(id, 'confirm'), rejectUrl = actionLink_(id, 'reject');
@@ -940,7 +990,7 @@ function adminAction(id, action, token) {
         return { ok: false, message: 'Termín ' + czDate_(o.from) + ' – ' + czDate_(o.to) + ' mezitím obsadila jiná rezervace. Potvrdit ji nelze. Poptávku můžete zamítnout.' };
       }
       const ev = calendar_().createAllDayEvent('REZERVACE – ' + o.name, parseYmd_(o.from), addDays_(parseYmd_(o.to), 1), {   // konec události = den po vrácení
-        description: ['Stav: ' + STATUS.CONFIRMED, 'Jméno: ' + o.name, 'Telefon: ' + o.phone, 'E-mail: ' + o.email, 'Počet osob: ' + o.guests,
+        description: ['Stav: ' + STATUS.CONFIRMED, 'Jméno: ' + o.name, 'Telefon: ' + o.phone, 'E-mail: ' + o.email,
           'Převzetí: ' + czDate_(o.from), 'Vrácení: ' + czDate_(o.to), 'Poznámka: ' + (o.note || '–'), 'ID: ' + o.id].join('\n'),
       });
       try { ev.setColor(CalendarApp.EventColor.GREEN); } catch (e) { /* barva není nutná */ }

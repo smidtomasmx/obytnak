@@ -15,6 +15,7 @@
     <div class="wrap">
       <a class="logo" href="index.html" aria-label="Obytňák Vysočina – Startseite">
         <img src="../src/logo.png" alt="Obytňák Vysočina" width="68" height="68">
+        <span>Obytňák Vysočina</span>
       </a>
       <button class="burger" aria-label="Menü" aria-expanded="false" aria-controls="nav"><span></span></button>
       <nav class="nav" id="nav">
@@ -64,7 +65,6 @@
                 </tbody>
                 <tbody>
                 <tr data-from="11"><td colspan="3">Rabatt ab 11 Tagen</td><td>10 %</td></tr>
-                <tr data-from="21"><td colspan="3">Rabatt ab 21 Tagen</td><td>15 %</td></tr>
                 </tbody>
               </table>
             </div>
@@ -89,12 +89,16 @@
               </div>
               <p class="err" id="dateErr" role="alert"></p>
 
-              <div>
-                <label for="guests">Anzahl der Personen</label>
-                <select id="guests" name="guests">
-                  <option>1</option><option selected>2</option><option>3</option>
-                  <option>4</option><option>5</option><option>6</option>
-                </select>
+              <div class="biz-block">
+                <label class="check"><input type="checkbox" id="bizToggle" name="isBusiness"> Ich benötige eine Rechnung auf Firma</label>
+                <div id="bizFields" hidden>
+                  <div><label for="bizName">Firmenname</label><input id="bizName" name="bizName" autocomplete="organization"></div>
+                  <div><label for="bizAddress">Firmensitz</label><input id="bizAddress" name="bizAddress" autocomplete="street-address"></div>
+                  <div class="row2">
+                    <div><label for="bizIc">Firmen-ID (IČ)</label><input id="bizIc" name="bizIc" inputmode="numeric"></div>
+                    <div><label for="bizDic">USt-IdNr. (DIČ)</label><input id="bizDic" name="bizDic"></div>
+                  </div>
+                </div>
               </div>
 
               <div class="row2">
